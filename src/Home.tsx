@@ -1,4 +1,4 @@
-import { View, Text, Button, ScrollView } from 'react-native'
+import { View, Text, Button, ScrollView, Pressable } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { QuerySnapshot, collection, getDocs } from 'firebase/firestore';
 import { db } from '../database/config';
@@ -20,16 +20,15 @@ const Home: React.FC<any> = ({ navigation}) => {
 
   
   return (
-    <View>
+    <View style={{backgroundColor: 'red'}}>
       <ScrollView style={{ maxHeight: 600 }}>
-        {companies.map((company, index) => (
-        <Text key={index}>{company.id}</Text>
+      {companies.map((company, index) => (
+          <View key={index}>
+            <Text>{company.id}</Text>
+            <Text>ชื่อบริษัท: {company.name}</Text>
+          </View>
         ))}
       </ScrollView>
-      <Button
-        title="Go to Package Screen"
-        onPress={() => navigation.navigate('Package')}
-      />
     </View>
   )
 }
