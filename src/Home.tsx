@@ -1,10 +1,10 @@
-import { View, Text, Button, ScrollView, Pressable } from 'react-native'
+import { View, Text, Button, ScrollView, Pressable, TouchableOpacity, StyleSheet } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { QuerySnapshot, collection, getDocs } from 'firebase/firestore';
 import { db } from '../database/config';
 
 
-const Home: React.FC<any> = ({ navigation}) => {
+const Home: React.FC<any> = ({ navigation }) => {
   const [companies, setCompanies] = useState<any[]>([]);
   useEffect(() => {
     const fetchData = async () => {
@@ -18,19 +18,33 @@ const Home: React.FC<any> = ({ navigation}) => {
     fetchData();
   }, []);
 
-  
+  const handlePress = () => {
+    navigation.navigate('ViewEmployee');
+  };
   return (
-    <View style={{backgroundColor: 'red'}}>
+    <View>
       <ScrollView style={{ maxHeight: 600 }}>
       {companies.map((company, index) => (
-          <View key={index}>
-            <Text>{company.id}</Text>
+        <TouchableOpacity style={styles.card} onPress={handlePress} key={index}>
+          <View>
             <Text>ชื่อบริษัท: {company.name}</Text>
+            <Text>จำนวนพนักงาน</Text>
           </View>
+        </TouchableOpacity>
         ))}
       </ScrollView>
     </View>
   )
 }
-
+const styles = StyleSheet.create({
+  card: {
+    height:75,
+    margin:10,
+    backgroundColor:'green',
+    padding:5,
+    borderWidth: 3,
+    borderRadius:10,
+    borderColor: 'black',
+  },
+});
 export default Home

@@ -1,14 +1,31 @@
-import { View, Text, Button } from 'react-native'
-import React from 'react'
+import { View, Text, Button, TouchableOpacity } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { collection, QuerySnapshot, getDocs } from 'firebase/firestore';
+import { db } from '../database/config';
 
-const Package: React.FC<any> = ({ navigation }) => {
+const Package: React.FC<any> = () => {
+  const [Package, setPackage] = useState<any[]>([]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const Collection = collection(db, 'HealthCheckPackage');
+      const Snapshot: QuerySnapshot = await getDocs(Collection);
+      const Data = Snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setPackage(Data);
+      console.log(Data)
+    };
+
+    fetchData();
+  }, []);
   return (
     <View>
-      <Text>package</Text>
-      <Button
-        title="Go to Home Screen"
-        onPress={() => navigation.navigate('Home')}
-      />
+      {Package.map((data, index) => (
+          <View key={index}>
+            <TouchableOpacity>
+            <Text>{data.id}</Text>
+            </TouchableOpacity>
+            
+          </View>
+        ))}
     </View>
   )
 }
