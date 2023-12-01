@@ -1,7 +1,7 @@
 import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createNativeStackNavigator,Transitio  } from '@react-navigation/native-stack';
+import { createNativeStackNavigator} from '@react-navigation/native-stack';
 import Home from './src/Home';
 import Package from './src/Package';
 import Scan from './src/Scan';
@@ -9,6 +9,8 @@ import Sticker from './src/Sticker';
 import Register from './src/Register';
 import AddCompany from './src/AddCompany';
 import ViewEmployee from './src/ViewEmployee';
+import ViewAppointment from './src/ViewAppointment';
+import Appointment from './src/Appointment';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
@@ -17,6 +19,7 @@ const HomeStack = () => (
   <Stack.Navigator screenOptions={{animation: 'slide_from_right',}}>
     <Stack.Screen name="Home" component={Home} />
     <Stack.Screen name="ViewEmployee" component={ViewEmployee} />
+    <Stack.Screen name="ViewAppointment" component={ViewAppointment} />
   </Stack.Navigator>
 );
 const App = () => {
@@ -24,6 +27,7 @@ const App = () => {
     <NavigationContainer>
       <Tab.Navigator screenOptions={{headerShown: false}}>
         <Tab.Screen name="Home" component={HomeStack} />
+        <Tab.Screen name="Appointment" component={Appointment} />
         <Tab.Screen name="AddCompany" component={AddCompany} />
         <Tab.Screen name="Sticker" component={Sticker} />
         <Tab.Screen name="Package" component={Package} />

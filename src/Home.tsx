@@ -6,6 +6,7 @@ import { db } from '../database/config';
 
 const Home: React.FC<any> = ({ navigation }) => {
   const [companies, setCompanies] = useState<any[]>([]);
+  
   useEffect(() => {
     const fetchData = async () => {
       const companiesCollection = collection(db, 'company');
@@ -18,14 +19,14 @@ const Home: React.FC<any> = ({ navigation }) => {
     fetchData();
   }, []);
 
-  const handlePress = () => {
-    navigation.navigate('ViewEmployee');
+  const handlePress = (companyid: string) => {
+    navigation.navigate('ViewEmployee', { companyid });
   };
   return (
     <View>
       <ScrollView style={{ maxHeight: 600 }}>
       {companies.map((company, index) => (
-        <TouchableOpacity style={styles.card} onPress={handlePress} key={index}>
+        <TouchableOpacity style={styles.card} onPress={() => handlePress(company.id)} key={index}>
           <View>
             <Text>ชื่อบริษัท: {company.name}</Text>
             <Text>จำนวนพนักงาน</Text>
