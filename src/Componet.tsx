@@ -1,9 +1,14 @@
-import { View,Text } from "react-native";
+import { View,Text, Button } from "react-native";
 
-export default function Component(){
+const Component: React.FC<any> =({ navigation })=>{
     return(
         <View>
             <Text>SCREEN 2</Text>
+            <Button
+                    title="Go to Details"
+                    onPress={() => navigation.navigate('Home')}
+                />
         </View>
     );
 }
+export default Component

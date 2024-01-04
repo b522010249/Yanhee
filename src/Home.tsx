@@ -1,6 +1,6 @@
 import { View,StyleSheet, ScrollView, Button,Text } from "react-native";
 
-export default function Home({ navigation }){
+const Home: React.FC<any> = ({ navigation })=>{
     return(
         <View style={styles.main}>
             <View style={{height:100,backgroundColor:'blue'}}>
@@ -47,3 +47,4 @@ const styles = StyleSheet.create({
         height:150,
     }
 })
+export default Home
