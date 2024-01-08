@@ -1,28 +1,34 @@
-import { View,StyleSheet, ScrollView, Button,Text } from "react-native";
+import { View,StyleSheet, ScrollView, TouchableOpacity,Text } from "react-native";
 
 const Home: React.FC<any> = ({ navigation })=>{
     return(
         <View style={styles.main}>
-            <View style={{height:100,backgroundColor:'blue'}}>
-                <Button
-                    title="Go to Details"
-                    onPress={() => navigation.navigate('Component')}
-                />
-            </View>
             <ScrollView >
                 <View style={styles.content}>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
-                    <View style={styles.card}/>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Component')}>
+                        <Text>เพิ่มบริษัท</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CompanyListScreen')}>
+                        <Text>ดูรายการบริษัท</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card}>
+                        <Text>เพิ่มโปรแกรมตรวจสุขภาพ</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card}>
+                        <Text>จัดการแพ๊คเกจตรวจสุขภาพ</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card}>
+                        <Text>เพิ่ม</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card}>
+                        <Text>เพิ่ม</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card}>
+                        <Text>เพิ่ม</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card}>
+                        <Text>เพิ่ม</Text>
+                    </TouchableOpacity>
                 </View>
             </ScrollView>
         </View>
@@ -31,18 +37,18 @@ const Home: React.FC<any> = ({ navigation })=>{
 const styles = StyleSheet.create({
     main:{
         flex: 1,
-        backgroundColor: 'pink',
     },
     content:{
-        backgroundColor: 'red',
         flexWrap: 'wrap',
         flexDirection:'row',
         justifyContent:'center',
-        gap:30,
+        gap:35,
     },
     card:{
         backgroundColor:'gray',
-        margin: 5,
+        justifyContent: 'center',
+        alignItems:'center',
+        margin: 10,
         width:150,
         height:150,
     }
