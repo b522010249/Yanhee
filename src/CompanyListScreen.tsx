@@ -1,47 +1,90 @@
-import React, { useState } from "react";
-import { View, Text, Button, ScrollView, StyleSheet } from "react-native";
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
-import * as XLSX from 'xlsx';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View ,Button} from 'react-native';
+import { db } from '../database/config';
+import { useEffect, useState } from 'react';
+import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 
-const CompanyListScreen: React.FC<any> = ({ navigation }) => {
-  const [convertedData, setConvertedData] = useState<string | null>(null);
-  const pickDocument = async () => {
-    try {
-        let result = await DocumentPicker.getDocumentAsync({});
-        const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: FileSystem.EncodingType.Base64 });
-        const workbook = XLSX.read(fileContent, { type: 'base64' });
+const CompanyListScreen: React.FC<any> =({ navigation })=>{
+  const [companies, setCompanies] = useState<any[]>([]);
+  const [numEmployees, setNumEmployees] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const fetchData = async () => {
+      const companiesCollection = collection(db, 'company');
+      const unsubscribe = onSnapshot(companiesCollection, async (snapshot) => {
+        const companiesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+        const employeeCounts: Record<string, number> = {};
 
-        // Assuming the first sheet is the one you want to convert
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
+        await Promise.all(
+          companiesData.map(async (company) => {
+            const employeesCollection = collection(db, 'company', company.id, 'employee');
+            const employeesSnapshot = await getDocs(employeesCollection);
+            employeeCounts[company.id] = employeesSnapshot.size;
+          })
+        );
+        setNumEmployees(employeeCounts);
+        setCompanies(companiesData);
+        console.log(companiesData);
 
-        // Convert sheet data to JSON
-        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
+      });
 
-        // Set the converted data in state
-        setConvertedData(jsonData);
-        console.log(convertedData);
-    } catch (error) {
-      console.error('Error picking document:', error);
-    }
-  };
+      return () => {
+        unsubscribe();
+      };
+    };
+    fetchData();
+  }, []);
+    return(
 
-  return (
-    <View style={styles.main}>
-      <Button title="Pick and Convert XLSX to JSONT" onPress={pickDocument} />
-      <Text>Converted JSON Data:</Text>
-      <ScrollView style={{ maxHeight: 600 }}>
-        <Text>{JSON.stringify(convertedData, null, 1)}</Text>
-      </ScrollView>
-    </View>
-  );
-};
+      <View>
+        <ScrollView style={{ height: '100%',width:'100%'}}>
+          {companies.map((company, index) => (
+            <TouchableOpacity style={styles.card} key={index}>
+              <View style={styles.incard1}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{company.no}</Text>
+              </View>
+              <View style={styles.incard2}>
+                <Text>ชื่อบริษัท: {company.name}</Text>
+                <Text>จำนวน: {numEmployees[company.id]} คน</Text>
+                <Text>วันที่:</Text>
+              </View>
 
+            </TouchableOpacity>
+            ))}
+        </ScrollView>  
+            <Button
+                    title="Go to Details"
+                    onPress={() => navigation.navigate('Home')}
+                />
+      </View>
+    );
+}
 const styles = StyleSheet.create({
-  main:{
-    backgroundColor: 'red',
+  container: {
+    flex: 1,
+    backgroundColor: 'white',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  card: {
+    width:'auto',
+    height:75,
+    marginBottom:10,
+    backgroundColor: '#f2f2f2',
+    borderBottomColor:'#e3e3e3',
+    borderBottomWidth:2,
+    padding:5,
+    flexDirection:'row',
+  },
+  incard1 :{
+    flex:1,
+    padding:10,
+    alignItems:'center',
+    justifyContent:'center',
+  },
+  incard2 :{
+    flex:9,
+    marginLeft:10,
+    justifyContent:'center',
+
   }
 });
-
-export default CompanyListScreen;
+export default CompanyListScreen
