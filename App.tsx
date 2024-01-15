@@ -1,10 +1,12 @@
 import { View,StyleSheet } from "react-native";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-//import Component from "./src/Componet";
+
+//navigate path
 import Homescreen from "./src/Home";
-import Component from "./src/Componet";
+import AddCompany from "./src/AddCompany";
 import CompanyListScreen from "./src/CompanyListScreen";
+import AddPackage from "./src/AddPackage";
 
 export default function App(){
 
@@ -18,8 +20,9 @@ export default function App(){
             <NavigationContainer>
                 <Stack.Navigator screenOptions={{headerShown: false}}>
                     <Stack.Screen name="Home" component={Homescreen} />
-                    <Stack.Screen name="Component" component={Component} />
+                    <Stack.Screen name="AddCompany" component={AddCompany} />
                     <Stack.Screen name="CompanyListScreen" component={CompanyListScreen} />
+                    <Stack.Screen name="AddPackage" component={AddPackage} />
                 </Stack.Navigator>
             </NavigationContainer>
             <View style={{height:70}}/>

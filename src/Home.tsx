@@ -5,17 +5,17 @@ const Home: React.FC<any> = ({ navigation })=>{
         <View style={styles.main}>
             <ScrollView >
                 <View style={styles.content}>
-                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Component')}>
-                        <Text>เพิ่มบริษัท</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CompanyListScreen')}>
-                        <Text>ดูรายการบริษัท</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddPackage')}>
                         <Text>เพิ่มโปรแกรมตรวจสุขภาพ</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.card}>
                         <Text>จัดการแพ๊คเกจตรวจสุขภาพ</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddCompany')}>
+                        <Text>เพิ่มบริษัท</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CompanyListScreen')}>
+                        <Text>ดูรายการบริษัท</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.card}>
                         <Text>เพิ่ม</Text>
