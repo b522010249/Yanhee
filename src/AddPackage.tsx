@@ -1,5 +1,7 @@
 import { Button, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useState } from 'react'
+import { db } from '../database/config';
+import { addDoc, collection, doc, getDocs, limit, orderBy, query, setDoc } from 'firebase/firestore';
 
 const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
   const [HealthCheck, SetHealthCheck] = useState<{
@@ -12,8 +14,12 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
     price: '',
     code: [],
   });
-  const Sumbit =()=>{
+  const Sumbit = async ()=>{
     console.log(HealthCheck)
+    const HealthCheckCollection = collection(db, 'HealthCheck',);
+
+    await setDoc(doc(db, "HealthCheck", HealthCheck.name), HealthCheck);
+    console.log('Data added successfully!');
   }
   const handleAddInput = () => {
     const newId = HealthCheck.code.length + 1;
@@ -36,9 +42,12 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
           <TextInput
             key={input.id}
             placeholder={`Enter text for Input ${input.id}`}
+            
+            onChangeText={newText=> SetHealthCheck((prevHealthCheck)=>({...prevHealthCheck,
+              code: prevHealthCheck.code.map((item) =>
+              item.id === input.id ? {...item, name: newText} :item)}))}
           />
         ))}
-        
         <Button title='Sumbit' onPress={Sumbit}/>
     </View>
   )
