@@ -7,6 +7,8 @@ import Homescreen from "./src/Home";
 import AddCompany from "./src/AddCompany";
 import CompanyListScreen from "./src/CompanyListScreen";
 import AddPackage from "./src/AddPackage";
+import AddHeatlhCheck from "./src/AddHealthCheck";
+import BarcodeScan from "./src/BarcodeScan";
 
 export default function App(){
 
@@ -23,6 +25,8 @@ export default function App(){
                     <Stack.Screen name="AddCompany" component={AddCompany} />
                     <Stack.Screen name="CompanyListScreen" component={CompanyListScreen} />
                     <Stack.Screen name="AddPackage" component={AddPackage} />
+                    <Stack.Screen name="AddHeatlhCheck" component={AddHeatlhCheck}/>
+                    <Stack.Screen name="BarcodeScan" component={BarcodeScan}/>
                 </Stack.Navigator>
             </NavigationContainer>
             <View style={{height:70}}/>

@@ -27,7 +27,6 @@ const AddCompany: React.FC<any> =({ navigation })=>{
   
           // Assuming the first sheet is the one you want to convert
           const sheetName = workbook.SheetNames[0];
-          const sheet = workbook.Sheets[sheetName];
   
           // Convert sheet data to JSON
           const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
