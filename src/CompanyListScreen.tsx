@@ -2,11 +2,13 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View ,Button} from 'rea
 import { db } from '../database/config';
 import { useEffect, useState } from 'react';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 
 const CompanyListScreen: React.FC<any> =({ navigation })=>{
   const [companies, setCompanies] = useState<any[]>([]);
   const [numEmployees, setNumEmployees] = useState<Record<string, number>>({});
+  const { navigate } = useNavigation();
   useEffect(() => {
     const fetchData = async () => {
       const companiesCollection = collection(db, 'company');
@@ -33,12 +35,18 @@ const CompanyListScreen: React.FC<any> =({ navigation })=>{
     };
     fetchData();
   }, []);
+  const handleCompanyPress = (companyId: string) => {
+    // Navigate to the 'Company' component with the selected company's ID as a parameter
+    console.log(companyId)
+    navigation.navigate('Company', { companyId });
+
+  };
     return(
 
       <View>
         <ScrollView style={{ height: '100%',width:'100%'}}>
           {companies.map((company, index) => (
-            <TouchableOpacity style={styles.card} key={index}>
+            <TouchableOpacity style={styles.card} key={index} onPress={() => handleCompanyPress(company.id)}>
               <View style={styles.incard1}>
                 <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{company.no}</Text>
               </View>
@@ -47,14 +55,13 @@ const CompanyListScreen: React.FC<any> =({ navigation })=>{
                 <Text>จำนวน: {numEmployees[company.id]} คน</Text>
                 <Text>วันที่:</Text>
               </View>
-
             </TouchableOpacity>
             ))}
         </ScrollView>  
             <Button
-                    title="Go to Details"
-                    onPress={() => navigation.navigate('Home')}
-                />
+                title="Go to Details"
+                onPress={() => navigation.navigate('Home')}
+            />
       </View>
     );
 }
