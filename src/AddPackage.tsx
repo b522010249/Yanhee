@@ -33,12 +33,11 @@ const AddPackage: React.FC<any> =({ navigation })=>{
     fetchData();
   }, []);
   useEffect(() => {
-    console.log(firebaseData);
     firebaseData.forEach((item) => {
-      console.log(`ID: ${item.id}, Name: ${item.name}, Price: ${item.price}`);
+      console.log(`Name: ${item.name}, Price: ${item.price}`);
       if (item.code) {
         item.code.forEach((codeItem) => {
-          console.log(`Code ID: ${codeItem.id}, Code Name: ${codeItem.name}`);
+          console.log(`Code Name: ${codeItem.name}`);
         });
       }
     });

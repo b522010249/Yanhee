@@ -38,18 +38,20 @@ const AddCompany: React.FC<any> =({ navigation })=>{
         console.error('Error picking document:', error);
       }
     };
+    const Sumbit =()=>{
+
+    }
   
     return(
         <View style={styles.main}>
-          <Text>เพิ่มการรจองตรวจสุขภาพ</Text>
-          <TextInput placeholder="กรอกชื่อบริษัท" />
-          <TextInput placeholder="กรอกเบอร์โทรติดต่อ" />
+          <Text>เพิ่มบริษัท</Text>
+          <TextInput style={styles.labeltext} placeholder="กรอกชื่อบริษัท" />
+          <TextInput style={styles.labeltext} placeholder="กรอกเบอร์โทรติดต่อ" />
           {Platform.OS === 'android' && (
             <View>
-              <TouchableOpacity onPress={showDatepicker} style={{ height: 50, backgroundColor: 'cyan' }}>
+              <TouchableOpacity onPress={showDatepicker} style={styles.calandar}>
                 <Text>{date.toDateString()}</Text>
               </TouchableOpacity>
-
               {showPicker && (
                 <DateTimePicker
                   testID="dateTimePicker"
@@ -60,6 +62,7 @@ const AddCompany: React.FC<any> =({ navigation })=>{
                   onChange={onChange}
                 />
               )}
+              <Button title='submit' onPress={Sumbit}/>
             </View>
           )}
           {Platform.OS === 'ios' && (
@@ -73,11 +76,11 @@ const AddCompany: React.FC<any> =({ navigation })=>{
             />            
           )}
 
-            <Button title="Pick and Convert XLSX to JSONT" onPress={pickDocument} />
+            {/* <Button title="Pick and Convert XLSX to JSONT" onPress={pickDocument} />
             <Text>Converted JSON Data:</Text>
             <ScrollView style={{ maxHeight: 600 }}>
             <Text>{JSON.stringify(convertedData, null, 1)}</Text>
-            </ScrollView>
+            </ScrollView> */}
         </View>
     );
 };
@@ -100,5 +103,18 @@ const styles = StyleSheet.create({
       justifyContent: 'center',
       alignItems: 'center',
     },
+    labeltext:{
+      marginBottom:10,
+      height:40,
+      borderWidth: 2,
+      paddingLeft:5,
+    },
+    calandar:{
+      height:40,
+      marginBottom:10,
+      borderWidth: 2,
+      justifyContent: 'center',
+      alignItems:'center',
+    }
   });
 export default AddCompany
