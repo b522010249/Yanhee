@@ -1,4 +1,4 @@
-import { Button, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Button, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useState } from 'react'
 import { db } from '../database/config';
 import { addDoc, collection, doc, getDocs, limit, orderBy, query, setDoc } from 'firebase/firestore';
@@ -6,21 +6,26 @@ import { addDoc, collection, doc, getDocs, limit, orderBy, query, setDoc } from 
 const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
   const [HealthCheck, SetHealthCheck] = useState<{
     name: string;
-    price: string;
+    price: number;
     code: { id: number }[];
   }>
   ({
     name: '',
-    price: '',
+    price: 0,
     code: [],
   });
-  const Sumbit = async ()=>{
-    console.log(HealthCheck)
-    const HealthCheckCollection = collection(db, 'HealthCheck',);
+  const Sumbit = async () => {
+    try {
+      const healthCheckDocRef = doc(db, 'HealthCheck', HealthCheck.name);
+      await setDoc(healthCheckDocRef, HealthCheck);
 
-    //await setDoc(doc(db, "HealthCheck", HealthCheck.name), HealthCheck);
-    //console.log('Data added successfully!');
-  }
+      console.log('Data added/updated successfully!');
+      Keyboard.dismiss();
+      
+    } catch (error) {
+      console.error('Error adding/updating data:', error.message);
+    }
+  };
   const handleAddInput = () => {
     const newId = HealthCheck.code.length + 1;
     SetHealthCheck((prevHealthCheck)=>({...prevHealthCheck,code:[...prevHealthCheck.code,{id:newId}]}));
@@ -34,8 +39,9 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
         />
         <TextInput 
         placeholder='กรอกราคา' 
-        value={HealthCheck.price}
-        onChangeText={newText => SetHealthCheck({ ...HealthCheck,price:newText})}
+        keyboardType='numeric'
+        value={HealthCheck.price.toString()}
+        onChangeText={newText => SetHealthCheck({ ...HealthCheck,price: parseFloat(newText) || 0 })}
         />
         <Button title="Add Input" onPress={handleAddInput} />
         {HealthCheck.code.map((input) => (
@@ -48,7 +54,7 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
               item.id === input.id ? {...item, name: newText} :item)}))}
           />
         ))}
-        <Button title='Sumbit' onPress={Sumbit}/>
+        <Button title='submit' onPress={Sumbit}/>
     </View>
   )
 }
