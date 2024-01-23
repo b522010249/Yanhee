@@ -11,7 +11,7 @@ import AddHeatlhCheck from "./src/AddHealthCheck";
 import BarcodeScan from "./src/BarcodeScan";
 import test from "./src/test";
 import React from "react";
-
+import Company from "./src/Company";
 export default function App(){
 
     const Stack = createNativeStackNavigator();
@@ -30,6 +30,7 @@ export default function App(){
                     <Stack.Screen name="AddHeatlhCheck" component={AddHeatlhCheck}/>
                     <Stack.Screen name="BarcodeScan" component={BarcodeScan}/>
                     <Stack.Screen name="test" component={test}/>
+                    <Stack.Screen name="Company" component={Company} />
                 </Stack.Navigator>
             </NavigationContainer>
             <View style={{height:70}}/>
