@@ -1,54 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import QRCode from 'react-native-qrcode-svg';
+import useScanDetection from 'use-scan-detection-react18';
 
 const Test: React.FC = () => {
-  const [barcode, setBarcode] = useState<string>('');
+  const [Barcode, SetBarcode] = useState<String>('');
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    const handleKeyDown = (evt: { code: string; key: string }) => {
-      if (interval) {
-        clearInterval(interval);
-      }
-
-      if (evt.code === 'Enter') {
-        if (barcode) {
-          handleBarcode(barcode);
-        }
-        setBarcode('');
-        return;
-      }
-
-      if (evt.key !== 'Shift') {
-        setBarcode((prevBarcode) => prevBarcode + evt.key);
-      }
-
-      interval = setInterval(() => setBarcode(''), 20);
-    };
-
-    const intervalCleanup = () => {
-      clearInterval(interval);
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown);
-      intervalCleanup();
-    };
-  }, [barcode]);
-
-  const handleBarcode = (scannedBarcode: string) => {
-    // Handle the scanned barcode, e.g., update state or trigger actions
-    console.log(scannedBarcode);
-  };
-
+  useScanDetection({
+    onComplete: (code) => {
+      const filteredCode = code.replace(/Shift/g, ''); // Filter out "Shift" occurrences
+      SetBarcode(filteredCode);
+      // Handle the filtered barcode, e.g., update state or trigger actions
+    },
+  });
   return (
     <View style={styles.container}>
       <QRCode value="HNzIK4UwagpCo7IAdkxD" />
-      <Text style={styles.lastBarcode}>{barcode}</Text>
+      <Text>{Barcode}</Text>
     </View>
   );
 };

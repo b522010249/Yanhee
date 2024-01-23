@@ -9237,6 +9237,11 @@ use-latest-callback@^0.1.7:
   resolved "https://registry.npmjs.org/use-latest-callback/-/use-latest-callback-0.1.9.tgz"
   integrity sha512-CL/29uS74AwreI/f2oz2hLTW7ZqVeV5+gxFeGudzQrgkCytrHw33G4KbnQOrRlAEzzAFXi7dDLMC9zhWcVpzmw==
 
+use-scan-detection-react18@^0.2.3:
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/use-scan-detection-react18/-/use-scan-detection-react18-0.2.3.tgz#2f1e9de1ba3a0c1416b9780603c603eccd4cbe61"
+  integrity sha512-sXS7dOSXdq+e+srEZusiZpdN4n7+PEJeq47GhBqm/b0/ixvZkzK0lf+t9mQDtiTHKVFWwJLAToq8jeo0OfhMQA==
+
 use-sync-external-store@^1.0.0:
   version "1.2.0"
   resolved "https://registry.npmjs.org/use-sync-external-store/-/use-sync-external-store-1.2.0.tgz"
