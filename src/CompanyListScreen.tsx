@@ -2,6 +2,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View ,Button} from 'rea
 import { db } from '../database/config';
 import { useEffect, useState } from 'react';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
+import React from 'react';
 
 const CompanyListScreen: React.FC<any> =({ navigation })=>{
   const [companies, setCompanies] = useState<any[]>([]);

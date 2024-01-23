@@ -1,3 +1,4 @@
+import React from "react";
 import { View,StyleSheet, ScrollView, TouchableOpacity,Text } from "react-native";
 
 const Home: React.FC<any> = ({ navigation })=>{
@@ -20,8 +21,8 @@ const Home: React.FC<any> = ({ navigation })=>{
                     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('BarcodeScan')}>
                         <Text>แสกน</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.card}>
-                        <Text>เพิ่ม</Text>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('test')}>
+                        <Text>test</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.card}>
                         <Text>เพิ่ม</Text>
