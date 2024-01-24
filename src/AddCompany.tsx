@@ -1,14 +1,20 @@
 import React, { useState } from "react";
 import { View, Text, Button, ScrollView, StyleSheet, TextInput, TouchableOpacity, Modal, Platform } from "react-native";
-import * as DocumentPicker from 'expo-document-picker';
-import * as FileSystem from 'expo-file-system';
-import * as XLSX from 'xlsx';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { db } from '../database/config';
+import { doc, setDoc } from 'firebase/firestore';
 
 const AddCompany: React.FC<any> =({ navigation })=>{
-    const [convertedData, setConvertedData] = useState<string | null>(null);
     const [date, setDate] = useState(new Date());
     const [showPicker, setShowPicker] = useState(false);
+    const [Company, SetCompany] = useState<{
+      name: string;
+      phone: number;
+    }>
+    ({
+      name: '',
+      phone:0,
+    });
   
     const onChange = (event: any, selectedDate: Date) => {
       const currentDate = selectedDate || date;
@@ -19,34 +25,30 @@ const AddCompany: React.FC<any> =({ navigation })=>{
     const showDatepicker = () => {
       setShowPicker(true);
     };
-    const pickDocument = async () => {
+    const Sumbit =async ()=>{
       try {
-          let result = await DocumentPicker.getDocumentAsync({});
-          const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: FileSystem.EncodingType.Base64 });
-          const workbook = XLSX.read(fileContent, { type: 'base64' });
+        const healthCheckDocRef = doc(db, 'Company', Company.name);
+        await setDoc(healthCheckDocRef, Company);
   
-          // Assuming the first sheet is the one you want to convert
-          const sheetName = workbook.SheetNames[0];
-  
-          // Convert sheet data to JSON
-          const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-  
-          // Set the converted data in state
-          setConvertedData(jsonData);
-          console.log(convertedData);
+        console.log('Company added');
+        
       } catch (error) {
-        console.error('Error picking document:', error);
+        console.error('Error adding/updating data:', error.message);
       }
-    };
-    const Sumbit =()=>{
 
     }
   
     return(
         <View style={styles.main}>
           <Text>เพิ่มบริษัท</Text>
-          <TextInput style={styles.labeltext} placeholder="กรอกชื่อบริษัท" />
-          <TextInput style={styles.labeltext} placeholder="กรอกเบอร์โทรติดต่อ" />
+          <TextInput style={styles.labeltext} placeholder="กรอกชื่อบริษัท" 
+          value={Company.name}
+          onChangeText={newText => SetCompany({ ...Company,name:newText})}
+           />
+          <TextInput style={styles.labeltext} placeholder="กรอกเบอร์โทรติดต่อ" 
+          keyboardType='numeric' value={Company.phone.toString()}
+          onChangeText={newText => SetCompany({ ...Company,phone: parseFloat(newText) || 0 })}
+          />
           {Platform.OS === 'android' && (
             <View>
               <TouchableOpacity onPress={showDatepicker} style={styles.calandar}>
@@ -75,12 +77,8 @@ const AddCompany: React.FC<any> =({ navigation })=>{
                 onChange={onChange}
             />            
           )}
-
-            {/* <Button title="Pick and Convert XLSX to JSONT" onPress={pickDocument} />
-            <Text>Converted JSON Data:</Text>
-            <ScrollView style={{ maxHeight: 600 }}>
-            <Text>{JSON.stringify(convertedData, null, 1)}</Text>
-            </ScrollView> */}
+          <Button title='Sumbit' onPress={Sumbit}/>
+          <Button title="Go to Home" onPress={() => navigation.navigate('Home')}/>
         </View>
     );
 };

@@ -1,7 +1,7 @@
 import { Button, Keyboard, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useState } from 'react'
 import { db } from '../database/config';
-import { addDoc, collection, doc, getDocs, limit, orderBy, query, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 
 const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
   const [HealthCheck, SetHealthCheck] = useState<{
@@ -34,12 +34,14 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
     <View style={styles.main}>
         <TextInput 
         placeholder='กรอกชื่อรายการตรวจสุขภาพ' 
+        style={styles.labeltext}
         value={HealthCheck.name}
         onChangeText={newText => SetHealthCheck({ ...HealthCheck,name:newText})}
         />
         <TextInput 
         placeholder='กรอกราคา' 
         keyboardType='numeric'
+        style={styles.labeltext}
         value={HealthCheck.price.toString()}
         onChangeText={newText => SetHealthCheck({ ...HealthCheck,price: parseFloat(newText) || 0 })}
         />
@@ -48,7 +50,7 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
           <TextInput
             key={input.id}
             placeholder={`Enter text for Input ${input.id}`}
-            
+            style={styles.labeltext}
             onChangeText={newText=> SetHealthCheck((prevHealthCheck)=>({...prevHealthCheck,
               code: prevHealthCheck.code.map((item) =>
               item.id === input.id ? {...item, name: newText} :item)}))}
@@ -64,5 +66,11 @@ export default AddHeatlhCheck
 const styles = StyleSheet.create({
   main:{
     padding: 15,
+  },
+  labeltext:{
+    marginBottom:10,
+    height:40,
+    borderWidth: 2,
+    paddingLeft:5,
   },
 })
