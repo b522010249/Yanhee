@@ -1,7 +1,7 @@
 import { View,StyleSheet } from "react-native";
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-
+import React from "react";
 //navigate path
 import Homescreen from "./src/Home";
 import AddCompany from "./src/AddCompany";
@@ -9,9 +9,9 @@ import CompanyListScreen from "./src/CompanyListScreen";
 import AddPackage from "./src/AddPackage";
 import AddHeatlhCheck from "./src/AddHealthCheck";
 import BarcodeScan from "./src/BarcodeScan";
-import test from "./src/test";
-import React from "react";
 import Company from "./src/Company";
+import Sticker from "./src/Sticker";
+
 export default function App(){
 
     const Stack = createNativeStackNavigator();
@@ -26,11 +26,11 @@ export default function App(){
                     <Stack.Screen name="Home" component={Homescreen} />
                     <Stack.Screen name="AddCompany" component={AddCompany} />
                     <Stack.Screen name="CompanyListScreen" component={CompanyListScreen} />
+                    <Stack.Screen name="Company" component={Company} />
                     <Stack.Screen name="AddPackage" component={AddPackage} />
                     <Stack.Screen name="AddHeatlhCheck" component={AddHeatlhCheck}/>
                     <Stack.Screen name="BarcodeScan" component={BarcodeScan}/>
-                    <Stack.Screen name="test" component={test}/>
-                    <Stack.Screen name="Company" component={Company} />
+                    <Stack.Screen name="Sticker" component={Sticker}/>
                 </Stack.Navigator>
             </NavigationContainer>
             <View style={{height:70}}/>
