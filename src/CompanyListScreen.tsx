@@ -11,14 +11,14 @@ const CompanyListScreen: React.FC<any> =({ navigation })=>{
   const { navigate } = useNavigation();
   useEffect(() => {
     const fetchData = async () => {
-      const companiesCollection = collection(db, 'company');
+      const companiesCollection = collection(db, 'Company');
       const unsubscribe = onSnapshot(companiesCollection, async (snapshot) => {
         const companiesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
         const employeeCounts: Record<string, number> = {};
 
         await Promise.all(
           companiesData.map(async (company) => {
-            const employeesCollection = collection(db, 'company', company.id, 'employee');
+            const employeesCollection = collection(db, 'Company', company.id, 'Employee');
             const employeesSnapshot = await getDocs(employeesCollection);
             employeeCounts[company.id] = employeesSnapshot.size;
           })

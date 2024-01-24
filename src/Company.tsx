@@ -1,22 +1,36 @@
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View ,Button} from 'react-native';
-import { db } from '../database/config';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Button, Modal } from 'react-native';
 import { useEffect, useState } from 'react';
-import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import React from 'react';
 import { useNavigation } from '@react-navigation/native';
+import * as DocumentPicker from 'expo-document-picker';
+import * as FileSystem from 'expo-file-system';
+import * as XLSX from 'xlsx';
+import { collection, where,getDocs, setDoc, doc, query, addDoc, onSnapshot } from 'firebase/firestore';
+import { db } from '../database/config';
 
 interface Employee {
-  id: string;
-  name: string;
+  id:string;
+  คำนำหน้า: string;
+  ชื่อจริง: string;
+  นามสกุล: string;
+  'P.':string;
+  'VN.':string;
+  'HN.':string;
+  ลำดับ:number;
+  'ว/ด/ปีเกิด':Date;
 }
 
-const Company: React.FC<any> =({ route })=>{
+const Company: React.FC<any> = ({ route }) => {
   const { companyId } = route.params;
   const [employees, setEmployees] = useState<Employee[]>([]);
   const navigation = useNavigation();
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [convertedData, setConvertedData] = useState<Employee[] | null>(null);
+  const [HealthCheckPackageData, setHealthCheckPackage] = useState<[]>([]);
+
   useEffect(() => {
     const fetchEmployees = async () => {
-      const employeesCollection = collection(db, 'company', companyId, 'employee');
+      const employeesCollection = collection(db, 'Company', companyId, 'Employee');
       const employeesSnapshot = await getDocs(employeesCollection);
       const employeesData = employeesSnapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Employee));
       setEmployees(employeesData);
@@ -24,53 +38,161 @@ const Company: React.FC<any> =({ route })=>{
 
     fetchEmployees();
   }, [companyId]);
+
   const handleCompanyPress = (employeeID: string) => {
-    console.log(employeeID)
-    navigation.navigate('Sticker', { employeeID });
+    console.log(employeeID);
+    navigation.navigate('Employee', { employeeID });
+  };
+
+  const toggleModal = () => {
+    setModalVisible(!isModalVisible);
+  };
+
+  const pickDocument = async () => {
+    try {
+      let result = await DocumentPicker.getDocumentAsync({});
+      const fileContent = await FileSystem.readAsStringAsync(result.assets[0].uri, { encoding: FileSystem.EncodingType.Base64 });
+      const workbook = XLSX.read(fileContent, { type: 'base64' });
+
+      // Assuming the first sheet is the one you want to convert
+      const sheetName = workbook.SheetNames[0];
+
+      // Convert sheet data to JSON
+      const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
+        raw: false,
+        dateNF: 'YYYY-MM-DDTHH:mm:ss.SSSZ', // Format for parsing dates
+      }) as Employee[];
+
+      // Convert date serial numbers to JavaScript Date objects
+      jsonData.forEach((employee) => {
+        if (employee.date) {
+          employee.date = XLSX.utils.dateNum(employee.date);
+        }
+      });
+
+      // Set the converted data in state
+      setConvertedData(jsonData);
+      console.log('data picked');
+    } catch (error) {
+      console.error('Error picking document:', error);
+    }
+  };
+
+  const Submit = async () => {
+    console.log(convertedData);
+    for (const employee of convertedData) {
+      const EmployeeCollectionRef = collection(db, 'Company', companyId, 'Employee');
+      const customEmployeeName = employee['HN.'];
+      const EmployeeDocRef = doc(EmployeeCollectionRef, customEmployeeName);
+      await setDoc(EmployeeDocRef, employee);
+
+    }
+    const healthCheckPackageRef = doc(db, 'HealthCheckPackage', '1');
+    const healthCheckSubCollectionRef = collection(healthCheckPackageRef, 'HealthCheck');
+    const healthCheckDocs = await getDocs(healthCheckSubCollectionRef);
+    const count = healthCheckDocs.size;
+    healthCheckDocs.forEach((doc) => {
+      console.log('Document data:', JSON.stringify(doc.data(), null, 2));
+    });
+    console.log('Size',{count});
 
   };
-    return(
-      <View>
-        <ScrollView style={{ height: '100%',width:'100%'}}>
-          {employees.map((employee) => (
-            <TouchableOpacity style={styles.card} key={employee.id} onPress={() => handleCompanyPress(employee.id)}>
-              <View style={styles.incard2}>
-                <Text>ชื่อ: {employee.name}</Text>
-              </View>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-    );
-}
+  employees.sort((a, b) => a.ลำดับ - b.ลำดับ);
+  return (
+    <View style={styles.container}>
+      <ScrollView style={{ height: '100%', width: '100%' }}>
+        
+        {employees.map((employee) => (
+          <TouchableOpacity style={styles.card} key={employee.ชื่อจริง} onPress={() => handleCompanyPress(employee.id)}>
+            <View style={styles.incard2}>
+              <Text>ชื่อ: {employee.ชื่อจริง}</Text>
+              <Text>id: {employee.id}</Text>
+              <Text>ลำดับ: {employee.ลำดับ}</Text>
+              <Text>P: {employee['P.']}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={isModalVisible}
+        onRequestClose={() => {
+          setModalVisible(false);
+        }}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text>Employee Details:</Text>
+            <Button title="Pick and Convert XLSX to JSON" onPress={pickDocument} />
+            <Text>Converted JSON Data:</Text>
+            <ScrollView style={{ maxHeight: 600 }}>
+              <Text>{JSON.stringify(convertedData, null, 2)}</Text>
+            </ScrollView>
+            <Button title="Submit" onPress={Submit} />
+            <Button title="Close Modal" onPress={toggleModal} />
+          </View>
+        </View>
+      </Modal>
+      <TouchableOpacity style={styles.AddEmployee} onPress={toggleModal}>
+        <Text>เพิ่มพนักงาน</Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'white',
     alignItems: 'center',
     justifyContent: 'center',
   },
   card: {
-    width:'auto',
-    height:75,
-    marginBottom:10,
+    width: 'auto',
+    height: 75,
+    marginBottom: 10,
     backgroundColor: '#f2f2f2',
-    borderBottomColor:'#e3e3e3',
-    borderBottomWidth:2,
-    padding:5,
-    flexDirection:'row',
+    borderBottomColor: '#e3e3e3',
+    borderBottomWidth: 2,
+    padding: 5,
+    flexDirection: 'row',
   },
-  incard1 :{
-    flex:1,
-    padding:10,
-    alignItems:'center',
-    justifyContent:'center',
+  incard1: {
+    flex: 1,
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  incard2 :{
-    flex:9,
-    marginLeft:10,
-    justifyContent:'center',
-
-  }
+  incard2: {
+    flex: 9,
+    marginLeft: 10,
+    justifyContent: 'center',
+  },
+  AddEmployee: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    margin: 10,
+    backgroundColor: 'green',
+    padding: 10,
+    borderTopColor: '#e3e3e3',
+    borderTopWidth: 2,
+    zIndex: 1,
+    width: 100,
+    height: 100,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    padding: 22,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 4,
+    borderColor: 'rgba(0, 0, 0, 0.1)',
+  },
 });
-export default Company
+
+export default Company;
