@@ -10,7 +10,7 @@ const AddCompany: React.FC<any> =({ navigation })=>{
     const [date, setDate] = useState(new Date());
     const [showPicker, setShowPicker] = useState(false);
   
-    const onChange = (event, selectedDate) => {
+    const onChange = (event: any, selectedDate: Date) => {
       const currentDate = selectedDate || date;
       setShowPicker(Platform.OS === 'ios'); // Close the picker on iOS, or keep it open on Android
       setDate(currentDate);

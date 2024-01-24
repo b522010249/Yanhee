@@ -3,6 +3,7 @@ import { db } from '../database/config';
 import { useEffect, useState } from 'react';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
 import React from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 interface Employee {
   id: string;
@@ -12,6 +13,7 @@ interface Employee {
 const Company: React.FC<any> =({ route })=>{
   const { companyId } = route.params;
   const [employees, setEmployees] = useState<Employee[]>([]);
+  const navigation = useNavigation();
   useEffect(() => {
     const fetchEmployees = async () => {
       const employeesCollection = collection(db, 'company', companyId, 'employee');
@@ -22,12 +24,16 @@ const Company: React.FC<any> =({ route })=>{
 
     fetchEmployees();
   }, [companyId]);
+  const handleCompanyPress = (employeeID: string) => {
+    console.log(employeeID)
+    navigation.navigate('Sticker', { employeeID });
+
+  };
     return(
       <View>
         <ScrollView style={{ height: '100%',width:'100%'}}>
           {employees.map((employee) => (
-            <TouchableOpacity style={styles.card} key={employee.id}>
-
+            <TouchableOpacity style={styles.card} key={employee.id} onPress={() => handleCompanyPress(employee.id)}>
               <View style={styles.incard2}>
                 <Text>ชื่อ: {employee.name}</Text>
               </View>
