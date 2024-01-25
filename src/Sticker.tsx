@@ -23,7 +23,6 @@ const Sticker: React.FC = ({route}) => {
   });
   
   const handlePrint = useReactToPrint({
-    
     content: () => componentRef.current,
   });
 
