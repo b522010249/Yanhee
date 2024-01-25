@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import * as XLSX from 'xlsx';
-import { collection, where,getDocs, setDoc, doc, query, addDoc, onSnapshot } from 'firebase/firestore';
+import { collection, where,getDocs, setDoc, doc, query, addDoc, onSnapshot, getDoc } from 'firebase/firestore';
 import { db } from '../database/config';
 
 interface Employee {
@@ -39,9 +39,8 @@ const Company: React.FC<any> = ({ route }) => {
     fetchEmployees();
   }, [companyId]);
 
-  const handleCompanyPress = (employeeID: string) => {
-    console.log(employeeID);
-    navigation.navigate('Employee', { employeeID });
+  const handleCompanyPress = (employeeID: string,companyID: string) => {
+    navigation.navigate('Employee', { employeeID , companyID });
   };
 
   const toggleModal = () => {
@@ -85,25 +84,34 @@ const Company: React.FC<any> = ({ route }) => {
       const customEmployeeName = employee['HN.'];
       const EmployeeDocRef = doc(EmployeeCollectionRef, customEmployeeName);
       await setDoc(EmployeeDocRef, employee);
+      const HealthCheckCollectionRef = collection(EmployeeDocRef, 'HealthCheck');
 
-    }
-    const healthCheckPackageRef = doc(db, 'HealthCheckPackage', '1');
-    const healthCheckSubCollectionRef = collection(healthCheckPackageRef, 'HealthCheck');
-    const healthCheckDocs = await getDocs(healthCheckSubCollectionRef);
-    const count = healthCheckDocs.size;
-    healthCheckDocs.forEach((doc) => {
-      console.log('Document data:', JSON.stringify(doc.data(), null, 2));
-    });
-    console.log('Size',{count});
+      const healthCheckPackageRef = doc(db, 'HealthCheckPackage', employee['P.']);
+      const healthCheckSubCollectionRef = collection(healthCheckPackageRef, 'HealthCheck');
+      const healthCheckDocsSnapshot = await getDocs(healthCheckSubCollectionRef);
+      healthCheckDocsSnapshot.forEach(async(healthCheckDoc)=>{
+        const HealthCheckDocRef = doc(HealthCheckCollectionRef, healthCheckDoc.id);
+        const healthCheckData = healthCheckDoc.data(); // Use healthCheckDoc.data() if you want to copy the entire document
 
-  };
+    // Set data for the HealthCheck subcollection
+    await setDoc(HealthCheckDocRef, healthCheckData);
+      });
+    // const healthCheckPackageRef = doc(db, 'HealthCheckPackage', '1');
+    // const healthCheckSubCollectionRef = collection(healthCheckPackageRef, 'HealthCheck');
+    // const healthCheckDocs = await getDocs(healthCheckSubCollectionRef);
+    // const count = healthCheckDocs.size;
+    // healthCheckDocs.forEach((doc) => {
+    //   console.log('Document data:', JSON.stringify(doc.data(), null, 2));
+    // });
+    // console.log('Size',{count});
+  };}
   employees.sort((a, b) => a.ลำดับ - b.ลำดับ);
   return (
     <View style={styles.container}>
       <ScrollView style={{ height: '100%', width: '100%' }}>
         
         {employees.map((employee) => (
-          <TouchableOpacity style={styles.card} key={employee.ชื่อจริง} onPress={() => handleCompanyPress(employee.id)}>
+          <TouchableOpacity style={styles.card} key={employee.ชื่อจริง} onPress={() => handleCompanyPress(employee.id,companyId)}>
             <View style={styles.incard2}>
               <Text>ชื่อ: {employee.ชื่อจริง}</Text>
               <Text>id: {employee.id}</Text>

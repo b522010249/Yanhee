@@ -1,13 +1,8 @@
 import React from "react";
+import Svg, { Rect } from "react-native-svg";
 
 const ComponentToPrint = React.forwardRef((props, ref) => {
-  const { employees } = props;
-    const style = {
-        // Your CSS styles here
-        
-        backgroundColor: "lightblue",
-        fontSize: "16px",
-      };
+  const { companyID } = props;
       const printStyles = `
       @media print {
         /* Set the page size here */
@@ -26,9 +21,11 @@ const ComponentToPrint = React.forwardRef((props, ref) => {
     `;    
   return (
     
-    <div ref={ref} style={style}>
+    <div ref={ref}>
         <style>{printStyles}</style>
-        
+        <div>
+          <text>{companyID}</text>
+        </div>
     </div>
   );
 });

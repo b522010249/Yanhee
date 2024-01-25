@@ -78,7 +78,8 @@ const AddPackage: React.FC<any> =({ navigation })=>{
 
     // Add each health check as a document within the HealthCheck collection
     for (const healthCheck of selectedItemsInfo) {
-      await addDoc(healthCheckCollectionRef, healthCheck);
+      const HealthCheckDocRef = doc(healthCheckCollectionRef,healthCheck?.name);
+      await setDoc(HealthCheckDocRef, healthCheck);
     }
   };
   return (
