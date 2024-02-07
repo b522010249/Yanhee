@@ -53,7 +53,7 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
             style={styles.labeltext}
             onChangeText={newText=> SetHealthCheck((prevHealthCheck)=>({...prevHealthCheck,
               code: prevHealthCheck.code.map((item) =>
-              item.id === input.id ? {...item, name: newText} :item)}))}
+              item.id === input.id ? {...item, name: newText,results: ''} :item)}))}
           />
         ))}
         <Button title='submit' onPress={Sumbit}/>
