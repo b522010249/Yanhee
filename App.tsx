@@ -10,7 +10,7 @@ import AddPackage from "./src/AddPackage";
 import AddHeatlhCheck from "./src/AddHealthCheck";
 import BarcodeScan from "./src/BarcodeScan";
 import Company from "./src/Company";
-import Sticker from "./src/Sticker";
+import HealthCheck from "./src/HealthCheck";
 import Employee from "./src/Employee";
 
 export default function App(){
@@ -31,7 +31,7 @@ export default function App(){
                     <Stack.Screen name="AddPackage" component={AddPackage} />
                     <Stack.Screen name="AddHeatlhCheck" component={AddHeatlhCheck}/>
                     <Stack.Screen name="BarcodeScan" component={BarcodeScan}/>
-                    <Stack.Screen name="Sticker" component={Sticker}/>
+                    <Stack.Screen name="HealthCheck" component={HealthCheck}/>
                     <Stack.Screen name="Employee" component={Employee}/>
                 </Stack.Navigator>
             </NavigationContainer>

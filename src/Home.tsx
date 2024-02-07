@@ -21,8 +21,8 @@ const Home: React.FC<any> = ({ navigation })=>{
                     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('BarcodeScan')}>
                         <Text>แสกน</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Sticker')}>
-                        <Text>Sticker</Text>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('HealthCheck')}>
+                        <Text>โปรแกรมตรวจสุขภาพ</Text>
                     </TouchableOpacity>
                     <TouchableOpacity style={styles.card}>
                         <Text>เพิ่ม</Text>
