@@ -12,6 +12,7 @@ import BarcodeScan from "./src/BarcodeScan";
 import Company from "./src/Company";
 import HealthCheck from "./src/HealthCheck";
 import Employee from "./src/Employee";
+import AddExtra from "./src/AddExtra";
 
 export default function App(){
 
@@ -33,6 +34,7 @@ export default function App(){
                     <Stack.Screen name="BarcodeScan" component={BarcodeScan}/>
                     <Stack.Screen name="HealthCheck" component={HealthCheck}/>
                     <Stack.Screen name="Employee" component={Employee}/>
+                    <Stack.Screen name="AddExtra" component={AddExtra}/>
                 </Stack.Navigator>
             </NavigationContainer>
             <View style={{height:70}}/>
