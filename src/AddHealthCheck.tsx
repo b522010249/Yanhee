@@ -7,11 +7,13 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
   const [HealthCheck, SetHealthCheck] = useState<{
     name: string;
     price: number;
+    amount_sticker: number;
     code: { id: number }[];
   }>
   ({
     name: '',
     price: 0,
+    amount_sticker:1,
     code: [],
   });
   const Sumbit = async () => {
@@ -44,6 +46,13 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
         style={styles.labeltext}
         value={HealthCheck.price.toString()}
         onChangeText={newText => SetHealthCheck({ ...HealthCheck,price: parseFloat(newText) || 0 })}
+        />
+                <TextInput 
+        placeholder='กรอกจำนวนสติกเกอร์' 
+        keyboardType='numeric'
+        style={styles.labeltext}
+        value={HealthCheck.amount_sticker.toString()}
+        onChangeText={newText => SetHealthCheck({ ...HealthCheck,amount_sticker: parseFloat(newText) || 0 })}
         />
         <Button title="Add Input" onPress={handleAddInput} />
         {HealthCheck.code.map((input) => (
