@@ -21,7 +21,7 @@ export default function App(){
 
     <View style={styles.Screen}>
         <View style={styles.Head}/>
-        <View style={styles.Searchbar}></View>
+        <View style={styles.headbar}></View>
         <View style={styles.Body}>
             <NavigationContainer>
                 <Stack.Navigator screenOptions={{headerShown: false}}>
@@ -67,7 +67,7 @@ const styles = StyleSheet.create({
         right:0,
         left:0,
     },
-    Searchbar:{
+    headbar:{
         backgroundColor: '#019874',
         height: 100,
     },
