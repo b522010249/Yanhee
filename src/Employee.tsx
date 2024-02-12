@@ -1,10 +1,18 @@
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react';
-import { Row, Table } from 'react-native-table-component';
-import QRCode from 'react-native-qrcode-svg';
-import { db } from '../database/config';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { useReactToPrint } from 'react-to-print';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Row, Table } from "react-native-table-component";
+import QRCode from "react-native-qrcode-svg";
+import { db } from "../database/config";
+import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
+import { useReactToPrint } from "react-to-print";
+let logoFromFile = require('../assets/Yanhee_logo.png');
 
 const Employee = ({ route }) => {
   const { employeeID, companyID } = route.params;
@@ -14,19 +22,35 @@ const Employee = ({ route }) => {
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        const employeeDocRef = doc(db, 'Company', companyID, 'Employee', employeeID);
+        const employeeDocRef = doc(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID
+        );
         const employeeDocSnapshot = await getDoc(employeeDocRef);
 
         if (employeeDocSnapshot.exists()) {
           const employeeData = employeeDocSnapshot.data();
           setEmployeeData(employeeData);
         } else {
-          console.log('Employee document does not exist.');
+          console.log("Employee document does not exist.");
         }
 
-        const HealthCheckCollection = collection(db, 'Company', companyID, 'Employee', employeeID, 'HealthCheck');
+        const HealthCheckCollection = collection(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID,
+          "HealthCheck"
+        );
         const unsubscribe = onSnapshot(HealthCheckCollection, (snapshot) => {
-          const healthCheckData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          const healthCheckData = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
           setHealthCheckData(healthCheckData);
         });
 
@@ -36,7 +60,7 @@ const Employee = ({ route }) => {
           unsubscribe();
         };
       } catch (error) {
-        console.error('Error fetching employee document:', error);
+        console.error("Error fetching employee document:", error);
       }
     };
 
@@ -56,28 +80,27 @@ const Employee = ({ route }) => {
             { length: amount_sticker },
             (_, i) => (
               <View key={i} style={styles.sticker}>
-                <View style={styles.leftContainer}>
-                  <View style={styles.rowContainer}>
-                    <Text style={styles.label}>บริษัท: </Text>
-                    <Text style={styles.text}>{companyID}</Text>
-                  </View>
-                  <View style={styles.rowContainer}>
-                    <Text style={styles.label}>ชื่อ: </Text>
+                <View style={styles.topContainer}>
+                  <View style={styles.leftContainer}>
                     <Text style={styles.text}>
-                      {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}{" "}
+                      ลำดับที่: {employeeData["ลำดับ"]}
+                    </Text>
+                    <Text style={styles.text}>
+                      {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
+                      {"\n"}
                       {employeeData["นามสกุล"]}
                     </Text>
                   </View>
-                  <View style={styles.rowContainer}>
-                    <Text style={styles.label}>ลำดับที่: </Text>
-                    <Text style={styles.text}>{employeeData["ลำดับ"]}</Text>
-                  </View>
-                  <View style={styles.rowContainer}>
-                    <Text style={styles.text}>{name}</Text>
+                  <View style={styles.rightContainer}>
+                    <QRCode
+                      value={companyID + "." + employeeData["HN."] + "." + name}
+                      logo={logoFromFile}
+                      size={100}
+                    />
                   </View>
                 </View>
-                <View style={styles.rightContainer}>
-                  <QRCode value={companyID+'.'+employeeData["HN."]+'.'+ name} size={60} />
+                <View style={styles.bottomContainer}>
+                  <Text style={{...styles.text,fontSize:22}}>{name}</Text>
                 </View>
               </View>
             )
@@ -90,79 +113,68 @@ const Employee = ({ route }) => {
   });
   return (
     <ScrollView style={{ flex: 1 }}>
-      <View style={{ flex: 1, padding: 16}}>
+      <View style={{ flex: 1, padding: 16 }}>
         <View>
           <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
             <Text>พิมพ์ทั้งหมด </Text>
           </TouchableOpacity>
-          <div style={{ display: "none" }}><ComponentToPrint ref={componentRef} companyID={companyID} /></div>
+          <div style={{ display: "none" }}>
+            <ComponentToPrint ref={componentRef} companyID={companyID} />
+          </div>
           <TouchableOpacity style={styles.incard2}>
             <Text>พิมพ์สติกเกอร์</Text>
-          </TouchableOpacity>                
+          </TouchableOpacity>
         </View>
-          
+
         <View>
           <TextInput
             placeholder="Search"
-            style={{ height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, padding: 8 }}
-
+            style={{
+              height: 40,
+              borderColor: "gray",
+              borderWidth: 1,
+              marginBottom: 10,
+              padding: 8,
+            }}
           />
-          <Table borderStyle={{ borderWidth: 1, borderColor: '#C1C0B9' }}>
+          <Table borderStyle={{ borderWidth: 1, borderColor: "#C1C0B9" }}>
             <Row
-              data={['โปรแกรมตรวจสุขภาพ', 'สถานะ','เวลา']}
-              style={{height: 40,backgroundColor: '#f1f8ff'}}
-              textStyle={{ fontSize: 12, fontWeight: 'bold',marginLeft:20}}
+              data={["โปรแกรมตรวจสุขภาพ", "สถานะ", "เวลา"]}
+              style={{ height: 40, backgroundColor: "#f1f8ff" }}
+              textStyle={{ fontSize: 12, fontWeight: "bold", marginLeft: 20 }}
             />
           </Table>
         </View>
       </View>
     </ScrollView>
-  )
-}
+  );
+};
 
-export default Employee
+export default Employee;
 
 const styles = StyleSheet.create({
   sticker: {
-    flex: 1,
-    pageBreakBefore: 'always',
-    alignContent: 'center',
-    flexWrap:'wrap',
-    flexDirection:'row',
-    marginLeft:15,
-    marginRight:15,
-    alignItems:'center',
-    paddingTop:10,
-    paddingBottom:10
+    pageBreakBefore: "always",
+    flexDirection: "column",
+    marginLeft: 15,
   },
   leftContainer: {
-    flex: 3.5,
-    height:100,
+    flex: 1.5,
+    justifyContent: "center",
+    flexWrap: "wrap",
   },
   rightContainer: {
     flex: 1,
-    alignItems:'flex-end',
-    alignContent:'flex-start',
-    height:100,
-    paddingLeft:5
+    justifyContent: "center",
   },
   text: {
-    fontSize: 12,
+    fontSize: 22,
   },
-  printPage: {
-    '@media print': {
-      '@page': {
-        size: '2in 1in',
-      },
-    },
+  topContainer: {
+    flex: 3,
+    flexDirection: "row",
   },
-  rowContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
+  bottomContainer: {
+    flex: 1,
   },
-  label: {
-    textAlign:'right',
-    width:50,
-  },
-})
+});
