@@ -1,203 +1,137 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, TextInput, Touchable, TouchableOpacity, View } from 'react-native';
-import { useReactToPrint } from 'react-to-print';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../database/config';
-import QRCode from 'react-native-qrcode-svg';
-import { G, Svg, Text as SvgText } from 'react-native-svg';
-
-const Employee = ({ route }) => {
-  const { employeeID, companyID } = route.params;
-  const componentRef = useRef(null);
-  const [employeeData, setEmployeeData] = useState([]);
-  const [healthCheckData, setHealthCheckData] = useState([]);
-  const [selectedHealthChecks, setSelectedHealthChecks] = useState<{ id: string }[]>([]);
-  const [inputValues, setInputValues] = useState({});
-
-
+import { Text, StyleSheet, TextInput, View, Modal, TouchableOpacity } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Picker } from "@react-native-picker/picker";
+import SectionedMultiSelect from "react-native-sectioned-multi-select";
+import Icon from "react-native-vector-icons/MaterialIcons";
+import {
+  collection,
+  setDoc,
+  onSnapshot,
+  doc,
+  addDoc,
+} from "firebase/firestore";
+import { db } from "../database/config";
+import HealthCheck from "./HealthCheck";
+const AddExtra = () => {
+  const [SelectedTitle, setSelectedTitle] = useState([]);
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [firebaseData, setFirebaseData] = useState<HealthCheck[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [Packagename, setPackageName] = useState<any>([]);
   useEffect(() => {
-    const fetchDocument = async () => {
-      try {
-        const employeeDocRef = doc(db, 'Company', companyID, 'Employee', employeeID);
-        const employeeDocSnapshot = await getDoc(employeeDocRef);
-
-        if (employeeDocSnapshot.exists()) {
-          const employeeData = employeeDocSnapshot.data();
-          console.log('Employee Data:', employeeData);
-          setEmployeeData(employeeData);
-        } else {
-          console.log('Employee document does not exist.');
-        }
-
-        const healthCheckCollection = collection(db, 'Company', companyID, 'Employee', employeeID, 'HealthCheck');
-        const unsubscribe = onSnapshot(healthCheckCollection, (snapshot) => {
-          const healthCheckData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          setHealthCheckData(healthCheckData);
-          console.log('HealthCheckData:', healthCheckData);
-        });
-
-        return () => {
-          unsubscribe();
-        };
-      } catch (error) {
-        console.error('Error fetching employee document:', error);
-      }
-    };
-
-    fetchDocument();
-  }, [companyID, employeeID]);
-  
-  useEffect(() => {
-    // Ensure selectedHealthChecks is updated when inputValues changes
-    setSelectedHealthChecks(prevSelectedHealthChecks =>
-      prevSelectedHealthChecks.map(item => ({
-        id: item.id,
-        amount: inputValues[item.id] || '',
-      }))
-    );
-  }, [inputValues]);
-
-  useEffect(() => {
-
-    // Set the initial value of all input fields to 1 when the component mounts
-    const initialInputValues = {};
-    healthCheckData.forEach((healthCheck) => {
-      initialInputValues[healthCheck.id] = '1';
-    });
-
-    setInputValues(initialInputValues);
-  }, [healthCheckData]);
-
-  const Sticker = ({ children }) => (
-    <View style={styles.sticker}>{children}</View>
-  );
-
-  const StickerData = [].concat(
-    ...selectedHealthChecks.map(item => Array.from({ length: parseInt(item.amount, 10) }, () => item))
-  );
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
-  });
-  const ComponentToPrint = React.forwardRef(({ companyID }, ref) => (
-    <View ref={ref} style={{ overflow: 'auto' }}>
-      {StickerData.map((healthCheck, index) => (
-        <Sticker key={index}>
-            <React.Fragment key={index}>
-              <Svg width={200} height={100}>
-                <SvgText x="0" y="20" fontSize="20">
-                  {healthCheck.name}
-                </SvgText>
-                <SvgText x="0" y="35" fontSize="12" fill="#000000">
-                  ลำดับที่: {employeeData['ลำดับ']}
-                </SvgText>
-                <SvgText x="0" y="79" fontSize="12" fill="#000000">
-                  {employeeData['คำนำหน้า']} {employeeData['ชื่อจริง']} {employeeData['นามสกุล']}
-                </SvgText>
-                <SvgText x="0" y="95" fontSize="12">
-                  {healthCheck.id}
-                </SvgText>
-                <G x="127" y="12">
-                  <QRCode value={employeeData['HN.']} size={70} />
-                </G>
-              </Svg>
-            </React.Fragment>
-        </Sticker>
-      ))}
-    </View>
-  ));
-
-  const handleHealthCheckPress = (index, healthCheckData) => {
-    // Toggle the selected state for the clicked health check
-    const existingIndex = selectedHealthChecks.findIndex(item => item.id === healthCheckData.id);
-  
-    if (existingIndex !== -1) {
-      // If already selected, remove it from the array
-      setSelectedHealthChecks(prevSelectedHealthChecks =>
-        prevSelectedHealthChecks.filter(item => item.id !== healthCheckData.id)
-      );
-      setInputValues(prevInputValues => {
-        const updatedInputValues = { ...prevInputValues };
-        delete updatedInputValues[healthCheckData.id];
-        return updatedInputValues;
+    const fetchData = async () => {
+      const healthCheckCollection = collection(db, "HealthCheck");
+      const unsubscribe = onSnapshot(healthCheckCollection, (snapshot) => {
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        })) as HealthCheck[];
+        setFirebaseData(data);
       });
-    } else {
-      // If not selected, add it to the array
-      setSelectedHealthChecks(prevSelectedHealthChecks => [
-        ...prevSelectedHealthChecks,
-        { id: String(healthCheckData.id), amount: inputValues[healthCheckData.id] || '' },
-      ]);
-      setInputValues(prevInputValues => ({
-        ...prevInputValues,
-        [healthCheckData.id]: prevInputValues[healthCheckData.id] || '',
-      }));
-    }
-  };
-  
-  
-  const handlelog = () => {
-    console.log(selectedHealthChecks);
-  }
-  const handleInputChange = (id, value) => {
-    setInputValues((prevInputValues) => {
-      return { ...prevInputValues, [id]: value };
+
+      return () => {
+        unsubscribe();
+      };
+    };
+    fetchData();
+  }, []);
+  useEffect(() => {
+    firebaseData.forEach((item) => {
+      console.log(`Name: ${item.name}, Price: ${item.price}`);
+      if (item.code) {
+        item.code.forEach((codeItem) => {
+          console.log(`Code Name: ${codeItem.name}`);
+        });
+      }
     });
+  }, [firebaseData]);
+  const data = [
+    'Item 1',
+    'Item 2',
+    'Item 3',
+    // Add more items as needed
+  ];
+  const toggleItem = (item) => {
+    const isSelected = selectedItems.includes(item);
+
+    if (isSelected) {
+      setSelectedItems(selectedItems.filter((selectedItem) => selectedItem !== item));
+    } else {
+      setSelectedItems([...selectedItems, item]);
+    }
   };
   return (
     <View style={styles.main}>
-      <div style={{ display: "none" }}><ComponentToPrint ref={componentRef} companyID={companyID} /></div>
-        <ScrollView>
-        {healthCheckData.map((HealthCheck, index) => (
-          <View key={index} style={styles.content}>
-            <TouchableOpacity
-              onPress={() => handleHealthCheckPress(index, HealthCheck)}
-              style={[
-                styles.card,
-                selectedHealthChecks.some(item => item.id === HealthCheck.id) ? { borderColor: 'green', borderWidth: 2 } : null,
-              ]}
-            >
-              <Text>{HealthCheck.name}</Text>
-            </TouchableOpacity>
-            {selectedHealthChecks.some(item => item.id === HealthCheck.id) && (
-              <TextInput
-                style={styles.card}
-                key={`input_${HealthCheck.id}`}
-                value={inputValues[HealthCheck.id] || '1'}
-                onChangeText={value => handleInputChange(HealthCheck.id, value)}
-                placeholder="Enter value"
-              />
-            )}
-          </View>
-        ))}
-        </ScrollView>
-      <Button title="Print" onPress={handlePrint} />
+      <Text>บุคคลภายนอก</Text>
+      <Picker
+        selectedValue={SelectedTitle}
+        onValueChange={(itemValue, itemIndex) => setSelectedTitle(itemValue)}
+      >
+        <Picker.Item label="นาย" value="นาย" />
+        <Picker.Item label="นาง" value="นาง" />
+        <Picker.Item label="นางสาว" value="นางสาว" />
+      </Picker>
+      <TextInput placeholder="กรอกชื่อ" style={styles.labeltext} />
+      <TextInput placeholder="กรอกนามสกุล" style={styles.labeltext} />
+      <TextInput placeholder="เบอร์โทร" style={styles.labeltext} />
+      <SectionedMultiSelect
+        IconRenderer={Icon}
+        items={firebaseData}
+        selectedItems={selectedItems}
+        onSelectedItemsChange={(items) => setSelectedItems(items)}
+        uniqueKey="id"
+        showDropDowns={true}
+        styles={{
+          button: {
+            backgroundColor: "blue",
+          },
+        }}
+      />
+          <View>
+      <TouchableOpacity onPress={() => setModalVisible(true)}>
+        <Text>Show Picker</Text>
+      </TouchableOpacity>
+
+      <Modal
+        visible={modalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View>
+          <Picker
+            selectedValue={null} // Set selectedValue to null to avoid automatic selection
+            onValueChange={(itemValue) => toggleItem(itemValue)}
+            mode="dropdown"
+            style={{ width: 200 }}
+          >
+            {data.map((item, index) => (
+              <Picker.Item key={index} label={item} value={item} />
+            ))}
+          </Picker>
+
+          <TouchableOpacity onPress={() => setModalVisible(false)}>
+            <Text>Done</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      <Text>Selected Items: {selectedItems.join(', ')}</Text>
+    </View>
     </View>
   );
 };
 
-export default Employee;
+export default AddExtra;
 
 const styles = StyleSheet.create({
-  sticker: {
-    flex: 1,
-    pageBreakBefore: 'always',
-    flexDirection: 'row',
-    alignContent: 'center',
+  main: {
+    padding: 15,
   },
-  main:{
-    flex: 1,
+  labeltext: {
+    marginBottom: 10,
+    height: 40,
+    borderWidth: 2,
+    paddingLeft: 5,
   },
-  content:{
-      flexWrap: 'wrap',
-      flexDirection:'row',
-      justifyContent:'center',
-      gap:35,
-  },
-  card:{
-      backgroundColor:'gray',
-      justifyContent: 'center',
-      alignItems:'center',
-      margin: 10,
-      width:150,
-      height:150,
-  }
 });

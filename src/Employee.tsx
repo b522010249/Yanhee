@@ -1,40 +1,37 @@
-import { Button, StyleSheet, View } from 'react-native'
-import React, { useEffect, useRef, useState } from 'react'
-import { useReactToPrint }  from 'react-to-print';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../database/config';
+import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useRef, useState } from 'react';
+import { Row, Table } from 'react-native-table-component';
 import QRCode from 'react-native-qrcode-svg';
-import { G, Rect, Svg,Text } from 'react-native-svg';
+import { db } from '../database/config';
+import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
+import { useReactToPrint } from 'react-to-print';
 
-const Employee = ({route}) => {
-  const { employeeID,companyID } = route.params;
+const Employee = ({ route }) => {
+  const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
-  const [EmployeeData, setEmployeeData] = useState([]);
-  const [HealthCheckData, setHealthCheckData] = useState([]);
+  const [employeeData, setEmployeeData] = useState({});
+  const [healthCheckData, setHealthCheckData] = useState([]);
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        // Fetch Employee document
         const employeeDocRef = doc(db, 'Company', companyID, 'Employee', employeeID);
         const employeeDocSnapshot = await getDoc(employeeDocRef);
-  
-        // Check if the document exists before setting the state
+
         if (employeeDocSnapshot.exists()) {
           const employeeData = employeeDocSnapshot.data();
-          console.log('Employee Data:', employeeData);
           setEmployeeData(employeeData);
         } else {
           console.log('Employee document does not exist.');
         }
-  
-        // Subscribe to HealthCheckCollection changes
-        const HealthCheckCollection = collection(db, 'Company', companyID, 'Employee', employeeID,'HealthCheck');
+
+        const HealthCheckCollection = collection(db, 'Company', companyID, 'Employee', employeeID, 'HealthCheck');
         const unsubscribe = onSnapshot(HealthCheckCollection, (snapshot) => {
-          const companiesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          setHealthCheckData(companiesData);
-          console.log('HealthCheckData:', companiesData);
+          const healthCheckData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+          setHealthCheckData(healthCheckData);
         });
-  
+
+        setLoading(false);
+
         return () => {
           unsubscribe();
         };
@@ -42,101 +39,130 @@ const Employee = ({route}) => {
         console.error('Error fetching employee document:', error);
       }
     };
-  
+
     fetchDocument();
   }, [companyID, employeeID]);
+
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
   });
-  const ComponentToPrint = React.forwardRef((props, ref) => {
-    return (
-      
-      <div ref={ref} style={styles.PrintPage}>
-        {HealthCheckData.map((healthCheck, index) => {
-          const { amount_sticker } = healthCheck;
 
-          // Create an array of sticker elements based on the amount_sticker
-          const stickerElements = Array.from({ length: amount_sticker }, (_, i) => (
-            <View key={i} style={styles.Sticker}>
-              <View style={{flex:1,marginLeft:15,alignContent:'center',width:'100%',height:'100%',justifyContent: 'space-between', flexDirection:'row',}}>
-                <React.Fragment>
-                  <View style={styles.leftContainer}>
-                    <Text style={styles.text}>บริษัท:{companyID}</Text>
-                    <Text style={styles.text}>ชื่อ:{EmployeeData['คำนำหน้า']} {EmployeeData['ชื่อจริง']} {EmployeeData['นามสกุล']}</Text>
-                    <Text style={styles.text}>ลำดับที่:{EmployeeData['ลำดับ']}</Text>
-                    <Text style={styles.text}>{healthCheck.name}</Text>
+  const ComponentToPrint = React.forwardRef(({ companyID }, ref) => {
+    return (
+      <View ref={ref} style={styles.printPage}>
+        {healthCheckData.map((healthCheck, index) => {
+          const { amount_sticker, name } = healthCheck;
+          const stickerElements = Array.from(
+            { length: amount_sticker },
+            (_, i) => (
+              <View key={i} style={styles.sticker}>
+                <View style={styles.leftContainer}>
+                  <View style={styles.rowContainer}>
+                    <Text style={styles.label}>บริษัท: </Text>
+                    <Text style={styles.text}>{companyID}</Text>
                   </View>
-                  <View style={styles.rightContainer}>
-                    {/* You can display the QR code here */}
-                    <QRCode value={EmployeeData['HN.']} size={70} />
+                  <View style={styles.rowContainer}>
+                    <Text style={styles.label}>ชื่อ: </Text>
+                    <Text style={styles.text}>
+                      {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}{" "}
+                      {employeeData["นามสกุล"]}
+                    </Text>
                   </View>
-                  {/* <Svg width={200} height={100}>
-                    <Text x="0" y="20" fontSize="13">
-                      บริษัท:{companyID}
-                    </Text>
-                    <Text x="0" y="35" fontSize="12" fill="#000000">
-                      ลำดับที่:{EmployeeData['ลำดับ']}
-                    </Text>
-                    <Text x="0" y="79" fontSize="12" fill="#000000">
-                      {EmployeeData['คำนำหน้า']} {EmployeeData['ชื่อจริง']} {EmployeeData['นามสกุล']}
-                    </Text>
-                    <Text x="0" y="95" fontSize="12">
-                      {healthCheck.name}
-                    </Text>
-                    <G x="127" y="12">
-                      <QRCode value={EmployeeData['HN.']} size={70} />
-                    </G>
-                  </Svg> */}
-                </React.Fragment>
+                  <View style={styles.rowContainer}>
+                    <Text style={styles.label}>ลำดับที่: </Text>
+                    <Text style={styles.text}>{employeeData["ลำดับ"]}</Text>
+                  </View>
+                  <View style={styles.rowContainer}>
+                    <Text style={styles.text}>{name}</Text>
+                  </View>
+                </View>
+                <View style={styles.rightContainer}>
+                  <QRCode value={companyID+'.'+employeeData["HN."]+'.'+ name} size={60} />
+                </View>
               </View>
-            </View>
-          ));
+            )
+          );
 
           return stickerElements;
         })}
-      </div>
-      // <View ref={ref} style={{ overflow: 'auto' }}>
-      // </View>
+      </View>
     );
   });
   return (
-    <View>
-        <Button title="print"onPress={handlePrint}/>
-      <ComponentToPrint ref={componentRef} companyID={companyID}/>
+    <ScrollView style={{ flex: 1 }}>
+      <View style={{ flex: 1, padding: 16}}>
+        <View>
+          <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
+            <Text>พิมพ์ทั้งหมด </Text>
+          </TouchableOpacity>
+          <div style={{ display: "none" }}><ComponentToPrint ref={componentRef} companyID={companyID} /></div>
+          <TouchableOpacity style={styles.incard2}>
+            <Text>พิมพ์สติกเกอร์</Text>
+          </TouchableOpacity>                
+        </View>
+          
+        <View>
+          <TextInput
+            placeholder="Search"
+            style={{ height: 40, borderColor: 'gray', borderWidth: 1, marginBottom: 10, padding: 8 }}
 
-    </View>
+          />
+          <Table borderStyle={{ borderWidth: 1, borderColor: '#C1C0B9' }}>
+            <Row
+              data={['โปรแกรมตรวจสุขภาพ', 'สถานะ','เวลา']}
+              style={{height: 40,backgroundColor: '#f1f8ff'}}
+              textStyle={{ fontSize: 12, fontWeight: 'bold',marginLeft:20}}
+            />
+          </Table>
+        </View>
+      </View>
+    </ScrollView>
   )
 }
 
 export default Employee
 
 const styles = StyleSheet.create({
-  Sticker:{
-    flex:1,
+  sticker: {
+    flex: 1,
     pageBreakBefore: 'always',
-    alignContent:'center',
-    marginTop:5,
-  },
-  PrintSticker: {
+    alignContent: 'center',
+    flexWrap:'wrap',
+    flexDirection:'row',
+    marginLeft:15,
+    marginRight:15,
+    alignItems:'center',
+    paddingTop:10,
+    paddingBottom:10
   },
   leftContainer: {
-    flex: 1.4,
-    justifyContent:'center'
+    flex: 3.5,
+    height:100,
   },
   rightContainer: {
     flex: 1,
-
-
+    alignItems:'flex-end',
+    alignContent:'flex-start',
+    height:100,
+    paddingLeft:5
   },
   text: {
-    fontSize:12
+    fontSize: 12,
   },
-  PrintPage: {
+  printPage: {
     '@media print': {
       '@page': {
-        size: '2in 1in', // Set the page size to 2.00 inches by 1.00 inch
-        margin: 5, // Set margin in millimeters (mm)
+        size: '2in 1in',
       },
     },
+  },
+  rowContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  label: {
+    textAlign:'right',
+    width:50,
   },
 })
