@@ -13,12 +13,21 @@ import Company from "./src/Company";
 import HealthCheck from "./src/HealthCheck";
 import Employee from "./src/Employee";
 import AddExtra from "./src/AddExtra";
+import Guest from "./src/Guest";
+import { DefaultTheme, Provider as PaperProvider} from "react-native-paper";
 
 export default function App(){
+    const theme = {
+        ...DefaultTheme,
+        colors: {
+          ...DefaultTheme.colors,
+          background: 'transparent', // Set the background color to the desired value
+        },
+      };
 
     const Stack = createNativeStackNavigator();
     return(
-
+        <PaperProvider theme={theme}>
     <View style={styles.Screen}>
         <View style={styles.Head}/>
         <View style={styles.headbar}></View>
@@ -35,12 +44,14 @@ export default function App(){
                     <Stack.Screen name="HealthCheck" component={HealthCheck}/>
                     <Stack.Screen name="Employee" component={Employee}/>
                     <Stack.Screen name="AddExtra" component={AddExtra}/>
+                    <Stack.Screen name="Guest" component={Guest}/>
                 </Stack.Navigator>
             </NavigationContainer>
             <View style={{height:70}}/>
             <View style={styles.Footer}/>
         </View>
       </View>  
+      </PaperProvider>
     );
 }
 

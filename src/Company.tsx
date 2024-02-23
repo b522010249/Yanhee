@@ -182,9 +182,25 @@ const Company: React.FC<any> = ({ route }) => {
           console.log(
             `Employee with customEmployeeName ${customEmployeeName} uploaded successfully.`
           );
+          const HistoryCollectionRef = collection(
+            EmployeeDocRef,"History"
+          )
+          const currentDate = new Date();
+          const day = currentDate.getDate(); // Get the day (1-31)
+          const month = currentDate.getMonth() + 1; // Get the month (0-11); Adding 1 because months are zero-based
+          const year = currentDate.getFullYear(); 
+          const yearDocRef = doc(HistoryCollectionRef, year.toString());
+
+          // Check if the document exists
+          const yearDocSnapshot = await getDoc(yearDocRef);
+          
+          if (!yearDocSnapshot.exists()) {
+            // If the document does not exist, create it
+            await setDoc(yearDocRef,{ date: day+'-'+month+'-'+year });
+          }
 
           const HealthCheckCollectionRef = collection(
-            EmployeeDocRef,
+            yearDocRef,
             "HealthCheck"
           );
           const healthCheckPackageRef = doc(
@@ -270,6 +286,7 @@ const Company: React.FC<any> = ({ route }) => {
                 ))}
               </View>
             )}
+            
             <Button
               title="Pick and Convert XLSX to JSON"
               onPress={pickDocument}
