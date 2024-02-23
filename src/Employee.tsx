@@ -19,9 +19,11 @@ import {
 } from "firebase/firestore";
 import { useReactToPrint } from "react-to-print";
 import DropDown from "react-native-paper-dropdown";
+import { useRoute } from "@react-navigation/native";
 let logoFromFile = require("../assets/Yanhee_logo.png");
 
-const Employee = ({ route }) => {
+const Employee = () => {
+  const route = useRoute();
   const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
   const [employeeData, setEmployeeData] = useState({});
@@ -122,8 +124,8 @@ const Employee = ({ route }) => {
                   <View style={styles.rightContainer}>
                    
                     <QRCode
-                      value={companyID + " /" + employeeData["HN."] + "/" + healthCheck.namecode}
-                      logo={logoFromFile}
+                      value={companyID + "/" + employeeData["HN."] + "/" + healthCheck.namecode}
+                     
                       size={100}
                     />
                   </View>

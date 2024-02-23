@@ -18,6 +18,7 @@ import { DefaultTheme, Provider as PaperProvider} from "react-native-paper";
 import SearchScan from "./src/SearchScan";
 
 export default function App(){
+    
     const theme = {
         ...DefaultTheme,
         colors: {
@@ -27,6 +28,7 @@ export default function App(){
       };
 
     const Stack = createNativeStackNavigator();
+    //SearchScan();
     return(
         <PaperProvider theme={theme}>
     <View style={styles.Screen}>
@@ -45,7 +47,7 @@ export default function App(){
                     <Stack.Screen name="HealthCheck" component={HealthCheck}/>
                     <Stack.Screen name="Employee" component={Employee}/>
                     <Stack.Screen name="AddExtra" component={AddExtra}/>
-                    <Stack.Screen name="SearchScan" component={SearchScan}/>
+                    <Stack.Screen name="SearchScan" component={SearchScan} />
                 </Stack.Navigator>
             </NavigationContainer>
             <View style={{height:70}}/>
