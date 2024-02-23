@@ -22,13 +22,7 @@ const Guest = () => {
   const hideModal = () => setVisible(false);
   const containerStyle = { backgroundColor: "white", padding: 20 };
   const [searchQuery, setSearchQuery] = React.useState('');
-  const theme = {
-    ...DefaultTheme,
-    colors: {
-      ...DefaultTheme.colors,
-      background: "transparent", // Set the background color to the desired value
-    },
-  };
+
   return (
     <View style={styles.container}>
       <Searchbar

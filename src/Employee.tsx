@@ -18,18 +18,21 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { useReactToPrint } from "react-to-print";
-import { Picker } from "@react-native-picker/picker";
+import DropDown from "react-native-paper-dropdown";
 let logoFromFile = require("../assets/Yanhee_logo.png");
-
 
 const Employee = ({ route }) => {
   const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
   const [employeeData, setEmployeeData] = useState({});
   const [HealthCheckData, setHealthCheckData] = useState([]);
-  const [SelectedTitle, setSelectedTitle] = useState([]);
   const [historyData, setHistoryData] = useState([]);
-  const [selectedOption, setSelectedOption] = useState(null);
+  const [showDropDown, setShowDropDown] = useState(false);
+  const [year, setyear] = useState (new Date().getFullYear().toString());
+  const historyOptions = historyData.map((id) => ({
+    label: id,
+    value: id,
+  }));
   useEffect(() => {
     const currentYear = new Date().getFullYear().toString();
     const fetchDocument = async () => {
@@ -62,6 +65,7 @@ const Employee = ({ route }) => {
         } else {
           console.log("Employee document does not exist.");
         }
+
         const HealthCheckCollection = collection(
           db,
           "Company",
@@ -69,7 +73,7 @@ const Employee = ({ route }) => {
           "Employee",
           employeeID,
           "History",
-          "2024",
+          year,
           "HealthCheck"
         );
         const unsubscribe = onSnapshot(HealthCheckCollection, (snapshot) => {
@@ -89,7 +93,7 @@ const Employee = ({ route }) => {
     };
 
     fetchDocument();
-  }, [companyID, employeeID]);
+  }, [companyID, employeeID,year]);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -124,7 +128,13 @@ const Employee = ({ route }) => {
                   </View>
                 </View>
                 <View style={styles.bottomContainer}>
-                  <Text style={{ ...styles.text, fontSize: 22 }}>{name}</Text>
+                  {name === "ตรวจร่างกายโดยแพทย์" ? (
+                    <Text style={{ ...styles.text, fontSize: 22 }}>
+                      {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
+                    </Text>
+                  ) : (
+                    <Text style={{ ...styles.text, fontSize: 22 }}>{name}</Text>
+                  )}
                 </View>
               </View>
             )
@@ -136,26 +146,24 @@ const Employee = ({ route }) => {
     );
   });
 
-  const options = [
-    "Option 1",
-    "Option 2"
-  ];
+  const options = ["Option 1", "Option 2"];
   return (
     <ScrollView style={{ flex: 1 }}>
-      <Picker
-        selectedValue={SelectedTitle}
-        onValueChange={(itemValue) => setSelectedTitle(itemValue)}
-      >
-        {historyData.map((documentId, index) => (
-          <Picker.Item key={index} label={documentId} value={documentId} />
-        ))}
-      </Picker>
+      <DropDown
+          label={"Year"}
+          visible={showDropDown}
+          showDropDown={() => setShowDropDown(true)}
+          onDismiss={() => setShowDropDown(false)}
+          value={year}
+          setValue={setyear}
+          list={historyOptions}
+        />
       <View style={{ flex: 1, padding: 16 }}>
         <View>
           <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
             <Text>พิมพ์ทั้งหมด </Text>
           </TouchableOpacity>
-          <div style={{ display: "none" }}>
+          <div>
             <ComponentToPrint ref={componentRef} companyID={companyID} />
           </div>
           <TouchableOpacity style={styles.incard2}>
@@ -200,7 +208,6 @@ const Employee = ({ route }) => {
             <Text>มียา/สมุนไพร/อาหารเสรืมที่ใช้ประจำ</Text>
             <Text>มีประวัติแพ้ยา/อาหาร</Text>
             <Text>มีประวัติรักษาวัณโรคปอด หรือ โรคที่เกี่ยวกับปอด</Text>
-
           </View>
         </View>
       </View>
