@@ -8,13 +8,15 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
     name: string;
     price: number;
     amount_sticker: number;
-    code: { id: number }[];
+    details: { id: number }[];
+    status: boolean ;
   }>
   ({
     name: '',
     price: 0,
     amount_sticker:1,
     code: [],
+    status: false
   });
   const Sumbit = async () => {
     try {
@@ -62,7 +64,7 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
             style={styles.labeltext}
             onChangeText={newText=> SetHealthCheck((prevHealthCheck)=>({...prevHealthCheck,
               code: prevHealthCheck.code.map((item) =>
-              item.id === input.id ? {...item, name: newText,results: ''} :item)}))}
+              item.id === input.id ? {...item, name: newText} :item)}))}
           />
         ))}
         <Button title='submit' onPress={Sumbit}/>

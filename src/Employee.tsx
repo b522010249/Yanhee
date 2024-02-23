@@ -10,16 +10,28 @@ import React, { useEffect, useRef, useState } from "react";
 import { Row, Table } from "react-native-table-component";
 import QRCode from "react-native-qrcode-svg";
 import { db } from "../database/config";
-import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+} from "firebase/firestore";
 import { useReactToPrint } from "react-to-print";
-let logoFromFile = require('../assets/Yanhee_logo.png');
+import { Picker } from "@react-native-picker/picker";
+let logoFromFile = require("../assets/Yanhee_logo.png");
+
 
 const Employee = ({ route }) => {
   const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
   const [employeeData, setEmployeeData] = useState({});
-  const [healthCheckData, setHealthCheckData] = useState([]);
+  const [HealthCheckData, setHealthCheckData] = useState([]);
+  const [SelectedTitle, setSelectedTitle] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
+  const [selectedOption, setSelectedOption] = useState(null);
   useEffect(() => {
+    const currentYear = new Date().getFullYear().toString();
     const fetchDocument = async () => {
       try {
         const employeeDocRef = doc(
@@ -31,19 +43,33 @@ const Employee = ({ route }) => {
         );
         const employeeDocSnapshot = await getDoc(employeeDocRef);
 
+        const historySubCollectionRef = collection(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID,
+          "History"
+        );
+        const historyDocsSnapshot = await getDocs(historySubCollectionRef);
+        const ids = historyDocsSnapshot.docs.map((doc) => doc.id);
+        console.log("historyData:", ids);
+        setHistoryData(ids);
+
         if (employeeDocSnapshot.exists()) {
           const employeeData = employeeDocSnapshot.data();
           setEmployeeData(employeeData);
         } else {
           console.log("Employee document does not exist.");
         }
-
         const HealthCheckCollection = collection(
           db,
           "Company",
           companyID,
           "Employee",
           employeeID,
+          "History",
+          "2024",
           "HealthCheck"
         );
         const unsubscribe = onSnapshot(HealthCheckCollection, (snapshot) => {
@@ -53,8 +79,6 @@ const Employee = ({ route }) => {
           }));
           setHealthCheckData(healthCheckData);
         });
-
-        setLoading(false);
 
         return () => {
           unsubscribe();
@@ -74,7 +98,7 @@ const Employee = ({ route }) => {
   const ComponentToPrint = React.forwardRef(({ companyID }, ref) => {
     return (
       <View ref={ref} style={styles.printPage}>
-        {healthCheckData.map((healthCheck, index) => {
+        {HealthCheckData.map((healthCheck, index) => {
           const { amount_sticker, name } = healthCheck;
           const stickerElements = Array.from(
             { length: amount_sticker },
@@ -100,7 +124,7 @@ const Employee = ({ route }) => {
                   </View>
                 </View>
                 <View style={styles.bottomContainer}>
-                  <Text style={{...styles.text,fontSize:22}}>{name}</Text>
+                  <Text style={{ ...styles.text, fontSize: 22 }}>{name}</Text>
                 </View>
               </View>
             )
@@ -111,8 +135,21 @@ const Employee = ({ route }) => {
       </View>
     );
   });
+
+  const options = [
+    "Option 1",
+    "Option 2"
+  ];
   return (
     <ScrollView style={{ flex: 1 }}>
+      <Picker
+        selectedValue={SelectedTitle}
+        onValueChange={(itemValue) => setSelectedTitle(itemValue)}
+      >
+        {historyData.map((documentId, index) => (
+          <Picker.Item key={index} label={documentId} value={documentId} />
+        ))}
+      </Picker>
       <View style={{ flex: 1, padding: 16 }}>
         <View>
           <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
@@ -144,6 +181,27 @@ const Employee = ({ route }) => {
               textStyle={{ fontSize: 12, fontWeight: "bold", marginLeft: 20 }}
             />
           </Table>
+          <View>
+            <TextInput placeholder="ความดันครั้งที่ 1" />
+            <TextInput placeholder="ความดันครั้งที่ 2" />
+            <TextInput placeholder="ชีพจรครั้งที่ 1" />
+            <TextInput placeholder="ชีพจรครั้งที่ 2" />
+          </View>
+          <View>
+            <TextInput placeholder="น้ำหนัก" />
+            <TextInput placeholder="ส่วนสูง" />
+            <Text>BMI</Text>
+          </View>
+          <View>
+            <Text>โรคประจำตัว</Text>
+            <Text>ประวัติการผ่าตัด</Text>
+            <Text>ท่านดื่มสุราหรือไม่</Text>
+            <Text>ท่านสูบบุหรี่หรือไม่</Text>
+            <Text>มียา/สมุนไพร/อาหารเสรืมที่ใช้ประจำ</Text>
+            <Text>มีประวัติแพ้ยา/อาหาร</Text>
+            <Text>มีประวัติรักษาวัณโรคปอด หรือ โรคที่เกี่ยวกับปอด</Text>
+
+          </View>
         </View>
       </View>
     </ScrollView>

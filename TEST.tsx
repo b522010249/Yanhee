@@ -1,87 +1,213 @@
-import { StatusBar } from 'expo-status-bar';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { db } from './database/config';
-import { useEffect, useState } from 'react';
-import { collection, QuerySnapshot, getDocs, onSnapshot } from 'firebase/firestore';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { Row, Table } from "react-native-table-component";
+import QRCode from "react-native-qrcode-svg";
+import { db } from "../database/config";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+} from "firebase/firestore";
+import { useReactToPrint } from "react-to-print";
+import { Picker } from "@react-native-picker/picker";
+let logoFromFile = require("../assets/Yanhee_logo.png");
 
-export default function App() {
-  const [companies, setCompanies] = useState<any[]>([]);
-  const [numEmployees, setNumEmployees] = useState<Record<string, number>>({});
+const Employee = ({ route }) => {
+  const { employeeID, companyID } = route.params;
+  const componentRef = useRef(null);
+  const [employeeData, setEmployeeData] = useState({});
+  const [HealthCheckData, setHealthCheckData] = useState([]);
+  const [SelectedTitle, setSelectedTitle] = useState([]);
+  const [historyData, setHistoryData] = useState([]);
   useEffect(() => {
-    const fetchData = async () => {
-      const companiesCollection = collection(db, 'company');
-      const unsubscribe = onSnapshot(companiesCollection, async (snapshot) => {
-        const companiesData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-        const employeeCounts: Record<string, number> = {};
-
-        await Promise.all(
-          companiesData.map(async (company) => {
-            const employeesCollection = collection(db, 'company', company.id, 'employee');
-            const employeesSnapshot = await getDocs(employeesCollection);
-            employeeCounts[company.id] = employeesSnapshot.size;
-          })
+    const currentYear = new Date().getFullYear().toString();
+    const fetchDocument = async () => {
+      try {
+        const employeeDocRef = doc(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID
         );
-        setNumEmployees(employeeCounts);
-        setCompanies(companiesData);
-        console.log(companiesData);
-        
-      });
-  
-      return () => {
-        // Unsubscribe from the snapshot listener when the component unmounts
-        unsubscribe();
-      };
+        const employeeDocSnapshot = await getDoc(employeeDocRef);
+
+        const historySubCollectionRef = collection(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID,
+          "History"
+        );
+        const historyDocsSnapshot = await getDocs(historySubCollectionRef);
+        const ids = historyDocsSnapshot.docs.map((doc) => doc.id);
+        console.log('historyData:', ids);
+        setHistoryData(ids);
+
+      
+        if (employeeDocSnapshot.exists()) {
+          const employeeData = employeeDocSnapshot.data();
+          setEmployeeData(employeeData);
+        } else {
+          console.log("Employee document does not exist.");
+        }
+        const HealthCheckCollection = collection(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID,
+          "History",
+          "2024",
+          "HealthCheck"
+        );
+        const unsubscribe = onSnapshot(HealthCheckCollection, (snapshot) => {
+          const healthCheckData = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
+          setHealthCheckData(healthCheckData);
+        });
+
+
+        return () => {
+          unsubscribe();
+        };
+
+      } catch (error) {
+        console.error("Error fetching employee document:", error);
+      }
     };
-  
-    fetchData();
-  }, []);
+
+    fetchDocument();
+  }, [companyID, employeeID]);
+
+  const handlePrint = useReactToPrint({
+    content: () => componentRef.current,
+  });
+
+  const ComponentToPrint = React.forwardRef(({ companyID }, ref) => {
+    return (
+      <View ref={ref} style={styles.printPage}>
+        {HealthCheckData.map((healthCheck, index) => {
+          const { amount_sticker, name } = healthCheck;
+          const stickerElements = Array.from(
+            { length: amount_sticker },
+            (_, i) => (
+              <View key={i} style={styles.sticker}>
+                <View style={styles.topContainer}>
+                  <View style={styles.leftContainer}>
+                    <Text style={styles.text}>
+                      ลำดับที่: {employeeData["ลำดับ"]}
+                    </Text>
+                    <Text style={styles.text}>
+                      {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
+                      {"\n"}
+                      {employeeData["นามสกุล"]}
+                    </Text>
+                  </View>
+                  <View style={styles.rightContainer}>
+                    <QRCode
+                      value={companyID + "." + employeeData["HN."] + "." + name}
+                      logo={logoFromFile}
+                      size={100}
+                    />
+                  </View>
+                </View>
+                <View style={styles.bottomContainer}>
+                  <Text style={{ ...styles.text, fontSize: 22 }}>{name}</Text>
+                </View>
+              </View>
+            )
+          );
+
+          return stickerElements;
+        })}
+      </View>
+    );
+  });
   return (
-    <View style={styles.container}>
-      <ScrollView style={{ height: '100%',width:'100%'}}>
-      {companies.map((company, index) => (
-        <TouchableOpacity style={styles.card} key={index}>
-          <View style={styles.incard1}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{company.no}</Text>
-          </View>
-          <View style={styles.incard2}>
-            <Text>ชื่อบริษัท: {company.name}</Text>
-            <Text>{numEmployees[company.id]}</Text>
-            <Text>วันที่เข้านัดตวจ</Text>
-          </View>
-        </TouchableOpacity>
+    <ScrollView style={{ flex: 1 }}>
+      <Picker
+        selectedValue={SelectedTitle}
+        onValueChange={(itemValue) => setSelectedTitle(itemValue)}
+      >
+        {historyData.map((documentId, index) => (
+          <Picker.Item key={index} label={documentId} value={documentId} />
         ))}
-      </ScrollView>      
-    </View>
+      </Picker>
+      <View style={{ flex: 1, padding: 16 }}>
+        <View>
+          <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
+            <Text>พิมพ์ทั้งหมด </Text>
+          </TouchableOpacity>
+          <div style={{ display: "none" }}>
+            <ComponentToPrint ref={componentRef} companyID={companyID} />
+          </div>
+          <TouchableOpacity style={styles.incard2}>
+            <Text>พิมพ์สติกเกอร์</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View>
+          <TextInput
+            placeholder="Search"
+            style={{
+              height: 40,
+              borderColor: "gray",
+              borderWidth: 1,
+              marginBottom: 10,
+              padding: 8,
+            }}
+          />
+          <Table borderStyle={{ borderWidth: 1, borderColor: "#C1C0B9" }}>
+            <Row
+              data={["โปรแกรมตรวจสุขภาพ", "สถานะ", "เวลา"]}
+              style={{ height: 40, backgroundColor: "#f1f8ff" }}
+              textStyle={{ fontSize: 12, fontWeight: "bold", marginLeft: 20 }}
+            />
+          </Table>
+        </View>
+      </View>
+    </ScrollView>
   );
-}
+};
+
+export default Employee;
 
 const styles = StyleSheet.create({
-  container: {
+  sticker: {
+    pageBreakBefore: "always",
+    flexDirection: "column",
+    marginLeft: 15,
+  },
+  leftContainer: {
+    flex: 1.5,
+    justifyContent: "center",
+    flexWrap: "wrap",
+  },
+  rightContainer: {
     flex: 1,
-    backgroundColor: 'white',
-    alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: "center",
   },
-  card: {
-    width:250,
-    alignSelf:'center',
-    margin:10,
-    backgroundColor:'pink',
-    padding:10,
-    borderWidth: 3,
-    borderRadius:10,
-    borderColor: 'black',
-
-    flexDirection:'row',
+  text: {
+    fontSize: 22,
   },
-  incard1 :{
-    flex:1,
-    alignItems:'center',
-    justifyContent:'center',
+  topContainer: {
+    flex: 3,
+    flexDirection: "row",
   },
-  incard2 :{
-    flex:5,
-    alignItems:'flex-end',
-
-  }
+  bottomContainer: {
+    flex: 1,
+  },
 });

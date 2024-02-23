@@ -18,6 +18,9 @@ const Home: React.FC<any> = ({ navigation })=>{
                     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CompanyListScreen')}>
                         <Text>ดูรายการบริษัท</Text>
                     </TouchableOpacity>
+                    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('Guest')}>
+                        <Text>บุคคลภายนอก</Text>
+                    </TouchableOpacity>
                     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('BarcodeScan')}>
                         <Text>แสกน</Text>
                     </TouchableOpacity>
@@ -27,6 +30,7 @@ const Home: React.FC<any> = ({ navigation })=>{
                     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('AddExtra')}>
                         <Text>เพิ่มเติม</Text>
                     </TouchableOpacity>
+                    
                 </View>
             </ScrollView>
         </View>

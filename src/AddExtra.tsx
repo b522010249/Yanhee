@@ -1,6 +1,7 @@
-import { Text, StyleSheet, TextInput, View, Modal, TouchableOpacity } from "react-native";
+import { StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
-import { Picker } from "@react-native-picker/picker";
+import { DatePickerModal } from "react-native-paper-dates";
+import { Button, TextInput, Text } from "react-native-paper";
 import SectionedMultiSelect from "react-native-sectioned-multi-select";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import {
@@ -11,13 +12,20 @@ import {
   addDoc,
 } from "firebase/firestore";
 import { db } from "../database/config";
-import HealthCheck from "./HealthCheck";
+import { DatePickerInput } from "react-native-paper-dates";
+interface HealthCheck {
+  name: string;
+  price: number;
+  code: any;
+  id: number;
+}
 const AddExtra = () => {
-  const [SelectedTitle, setSelectedTitle] = useState([]);
+  const [text, setText] = React.useState("");
   const [selectedItems, setSelectedItems] = useState([]);
   const [firebaseData, setFirebaseData] = useState<HealthCheck[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
   const [Packagename, setPackageName] = useState<any>([]);
+  const [inputDate, setInputDate] = React.useState(new Date());
+
   useEffect(() => {
     const fetchData = async () => {
       const healthCheckCollection = collection(db, "HealthCheck");
@@ -45,35 +53,41 @@ const AddExtra = () => {
       }
     });
   }, [firebaseData]);
-  const data = [
-    'Item 1',
-    'Item 2',
-    'Item 3',
-    // Add more items as needed
-  ];
-  const toggleItem = (item) => {
-    const isSelected = selectedItems.includes(item);
-
-    if (isSelected) {
-      setSelectedItems(selectedItems.filter((selectedItem) => selectedItem !== item));
-    } else {
-      setSelectedItems([...selectedItems, item]);
-    }
+  const calculateTotalPrice = () => {
+    let totalPrice = 0;
+    selectedItems.forEach((itemId) => {
+      const selectedItem = firebaseData.find((item) => item.id === itemId);
+      if (selectedItem) {
+        totalPrice += selectedItem.price;
+      }
+    });
+    return totalPrice;
   };
+
   return (
-    <View style={styles.main}>
-      <Text>บุคคลภายนอก</Text>
-      <Picker
-        selectedValue={SelectedTitle}
-        onValueChange={(itemValue, itemIndex) => setSelectedTitle(itemValue)}
-      >
-        <Picker.Item label="นาย" value="นาย" />
-        <Picker.Item label="นาง" value="นาง" />
-        <Picker.Item label="นางสาว" value="นางสาว" />
-      </Picker>
-      <TextInput placeholder="กรอกชื่อ" style={styles.labeltext} />
-      <TextInput placeholder="กรอกนามสกุล" style={styles.labeltext} />
-      <TextInput placeholder="เบอร์โทร" style={styles.labeltext} />
+    <View>
+      <View>
+        <TextInput
+          label="คำนำหน้า"
+          value={text}
+          onChangeText={(text) => setText(text)}
+        />
+        <TextInput
+          label="ชื่อจริง"
+          value={text}
+          onChangeText={(text) => setText(text)}
+        />
+        <TextInput
+          label="นามสกุล"
+          value={text}
+          onChangeText={(text) => setText(text)}
+        />
+        <TextInput
+          label="เบอร์โทรติดต่อ"
+          value={text}
+          onChangeText={(text) => setText(text)}
+        />
+      </View>
       <SectionedMultiSelect
         IconRenderer={Icon}
         items={firebaseData}
@@ -87,51 +101,19 @@ const AddExtra = () => {
           },
         }}
       />
-          <View>
-      <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <Text>Show Picker</Text>
-      </TouchableOpacity>
-
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View>
-          <Picker
-            selectedValue={null} // Set selectedValue to null to avoid automatic selection
-            onValueChange={(itemValue) => toggleItem(itemValue)}
-            mode="dropdown"
-            style={{ width: 200 }}
-          >
-            {data.map((item, index) => (
-              <Picker.Item key={index} label={item} value={item} />
-            ))}
-          </Picker>
-
-          <TouchableOpacity onPress={() => setModalVisible(false)}>
-            <Text>Done</Text>
-          </TouchableOpacity>
-        </View>
-      </Modal>
-
-      <Text>Selected Items: {selectedItems.join(', ')}</Text>
-    </View>
+      <Text variant="titleMedium">ราคารวมทั้งหมด:{calculateTotalPrice()}</Text>       
+      <DatePickerInput
+        locale="en-GB"
+        label="Date"
+        value={inputDate}
+        onChange={(d) => setInputDate(d)}
+        inputMode="start"
+      />
+      <Button>Submit</Button>
     </View>
   );
 };
 
 export default AddExtra;
 
-const styles = StyleSheet.create({
-  main: {
-    padding: 15,
-  },
-  labeltext: {
-    marginBottom: 10,
-    height: 40,
-    borderWidth: 2,
-    paddingLeft: 5,
-  },
-});
+const styles = StyleSheet.create({});
