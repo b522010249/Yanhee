@@ -14,6 +14,7 @@ import { db } from "../database/config";
 
 interface HealthCheck {
   name: string;
+  namecode:string;
   price: number;
   code: any;
   id: number;
@@ -89,7 +90,7 @@ const AddPackage: React.FC<any> = ({ navigation }) => {
     for (const healthCheck of selectedItemsInfo) {
       const HealthCheckDocRef = doc(
         healthCheckCollectionRef,
-        healthCheck?.name
+        healthCheck?.namecode
       );
       await setDoc(HealthCheckDocRef, healthCheck);
     }

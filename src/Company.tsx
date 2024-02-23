@@ -8,9 +8,13 @@ import {
 import { useEffect, useState } from "react";
 import React from "react";
 import { useNavigation } from "@react-navigation/native";
-import { collection, onSnapshot } from "firebase/firestore";
+
+import {
+  collection,
+  onSnapshot,
+} from "firebase/firestore";
 import { db } from "../database/config";
-import { Portal, Modal } from "react-native-paper";
+import { Portal,  Modal, } from "react-native-paper";
 import AddEmployee from "./AddEmployee";
 
 interface Employee {

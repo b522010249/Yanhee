@@ -120,15 +120,16 @@ const Employee = ({ route }) => {
                     </Text>
                   </View>
                   <View style={styles.rightContainer}>
+                   
                     <QRCode
-                      value={companyID + "." + employeeData["HN."] + "." + name}
+                      value={companyID + " /" + employeeData["HN."] + "/" + healthCheck.namecode}
                       logo={logoFromFile}
                       size={100}
                     />
                   </View>
                 </View>
                 <View style={styles.bottomContainer}>
-                  {name === "ตรวจร่างกายโดยแพทย์" ? (
+                  {healthCheck.namecode === "PE" ? (
                     <Text style={{ ...styles.text, fontSize: 22 }}>
                       {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
                     </Text>

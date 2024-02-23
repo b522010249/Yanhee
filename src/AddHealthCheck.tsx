@@ -6,6 +6,7 @@ import { doc, setDoc } from 'firebase/firestore';
 const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
   const [HealthCheck, SetHealthCheck] = useState<{
     name: string;
+    namecode: string;
     price: number;
     amount_sticker: number;
     details: { id: number }[];
@@ -13,6 +14,7 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
   }>
   ({
     name: '',
+    namecode:'',
     price: 0,
     amount_sticker:1,
     code: [],
@@ -20,7 +22,7 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
   });
   const Sumbit = async () => {
     try {
-      const healthCheckDocRef = doc(db, 'HealthCheck', HealthCheck.name);
+      const healthCheckDocRef = doc(db, 'HealthCheck', HealthCheck.namecode);
       await setDoc(healthCheckDocRef, HealthCheck);
 
       console.log('Data added/updated successfully!');
@@ -42,6 +44,12 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
         value={HealthCheck.name}
         onChangeText={newText => SetHealthCheck({ ...HealthCheck,name:newText})}
         />
+        <TextInput 
+        placeholder='กรอกชื่อรายการตรวจสุขภาพcode' 
+        style={styles.labeltext}
+        value={HealthCheck.namecode}
+        onChangeText={newText => SetHealthCheck({ ...HealthCheck,namecode:newText})}
+        />        
         <TextInput 
         placeholder='กรอกราคา' 
         keyboardType='numeric'
