@@ -4,28 +4,14 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Button,
-  Modal,
-  Platform,
 } from "react-native";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useNavigation } from "@react-navigation/native";
-import * as DocumentPicker from "expo-document-picker";
-import * as FileSystem from "expo-file-system";
-import * as XLSX from "xlsx";
-import {
-  collection,
-  where,
-  getDocs,
-  setDoc,
-  doc,
-  query,
-  addDoc,
-  onSnapshot,
-  getDoc,
-} from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../database/config";
+import { Portal, Modal } from "react-native-paper";
+import AddEmployee from "./AddEmployee";
 
 interface Employee {
   id: string;
@@ -46,9 +32,11 @@ const Company: React.FC<any> = ({ route }) => {
   const navigation = useNavigation();
   const [isModalVisible, setModalVisible] = useState(false);
   const [convertedData, setConvertedData] = useState<Employee[] | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [progress, setProgress] = useState({ current: 0, total: 0 });
+  const [visible, setVisible] = React.useState(false);
 
+  const showModal = () => setVisible(true);
+  const hideModal = () => setVisible(false);
+  const containerStyle = { backgroundColor: "white", padding: 20 };
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "Company", companyId, "Employee"),
@@ -62,183 +50,8 @@ const Company: React.FC<any> = ({ route }) => {
 
     return () => unsubscribe(); // Cleanup on component unmount
   }, [companyId]);
-  useEffect(() => {
-    if (!loading && !isModalVisible) {
-      setModalVisible(false);
-    }
-  }, [loading, isModalVisible]);
   const handleCompanyPress = (employeeID: string, companyID: string) => {
     navigation.navigate("Employee", { employeeID, companyID });
-  };
-
-  const toggleModal = () => {
-    setModalVisible(!isModalVisible);
-  };
-
-  const pickDocument = async () => {
-    try {
-      let result = await DocumentPicker.getDocumentAsync({});
-      console.log(result);
-
-      // Check if the platform is not web before using expo-file-system
-      if (Platform.OS !== "web") {
-        const fileContent = await FileSystem.readAsStringAsync(
-          result.assets[0].uri,
-          { encoding: FileSystem.EncodingType.Base64 }
-        );
-
-        const workbook = XLSX.read(fileContent, { type: "base64" });
-
-        // Assuming the first sheet is the one you want to convert
-        const sheetName = workbook.SheetNames[0];
-
-        // Convert sheet data to JSON
-        const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
-          raw: false,
-          dateNF: "YYYY-MM-DDTHH:mm:ss.SSSZ", // Format for parsing dates
-        }) as Employee[];
-
-        // Convert date serial numbers to JavaScript Date objects
-        jsonData.forEach((employee) => {
-          if (employee.date) {
-            employee.date = XLSX.utils.dateNum(employee.date);
-          }
-        });
-
-        // Set the converted data in state
-        setConvertedData(jsonData);
-        console.log("Data picked");
-      } else {
-        // Web platform - Use fetch to download file content
-        const fileUri = result.assets[0].uri;
-
-        if (fileUri) {
-          const response = await fetch(fileUri);
-          const buffer = await response.arrayBuffer();
-          const binaryString = new Uint8Array(buffer).reduce(
-            (data, byte) => data + String.fromCharCode(byte),
-            ""
-          );
-
-          const workbook = XLSX.read(binaryString, { type: "binary" });
-          const sheetName = workbook.SheetNames[1];
-
-          // Convert sheet data to JSON
-          const jsonData = XLSX.utils.sheet_to_json(
-            workbook.Sheets[sheetName],
-            {
-              raw: false,
-              dateNF: "YYYY-MM-DDTHH:mm:ss.SSSZ", // Format for parsing dates
-            }
-          ) as Employee[];
-
-          // Convert date serial numbers to JavaScript Date objects
-          jsonData.forEach((employee) => {
-            if (employee.date) {
-              employee.date = XLSX.utils.dateNum(employee.date);
-            }
-          });
-
-          // Set the converted data in state
-          setConvertedData(jsonData);
-          console.log("Data picked");
-
-          // Continue with the rest of your code to process the workbook
-        } else {
-          console.warn("Web platform detected, but file URI is missing.");
-        }
-      }
-    } catch (error) {
-      console.error("Error picking document:", error);
-    }
-  };
-
-  const Submit = async () => {
-    const hasEmptyKey = convertedData.some((item) =>
-      Object.keys(item).some((key) => key.includes("__EMPTY"))
-    );
-
-    if (hasEmptyKey) {
-      // Display an error message or handle the case where __EMPTY key is found
-      console.error("Submission cannot be done because __EMPTY key is found.");
-      return;
-    } else {
-      setLoading(true);
-      setProgress({ current: 0, total: convertedData.length });
-      console.log(convertedData);
-      let current = 0;
-      for (const employee of convertedData) {
-        const EmployeeCollectionRef = collection(
-          db,
-          "Company",
-          companyId,
-          "Employee"
-        );
-        const customEmployeeName = employee["HN."];
-        const EmployeeDocRef = doc(EmployeeCollectionRef, customEmployeeName);
-
-        try {
-          await setDoc(EmployeeDocRef, employee);
-          console.log(
-            `Employee with customEmployeeName ${customEmployeeName} uploaded successfully.`
-          );
-          const HistoryCollectionRef = collection(
-            EmployeeDocRef,"History"
-          )
-          const currentDate = new Date();
-          const day = currentDate.getDate(); // Get the day (1-31)
-          const month = currentDate.getMonth() + 1; // Get the month (0-11); Adding 1 because months are zero-based
-          const year = currentDate.getFullYear(); 
-          const yearDocRef = doc(HistoryCollectionRef, year.toString());
-
-          // Check if the document exists
-          const yearDocSnapshot = await getDoc(yearDocRef);
-          
-          if (!yearDocSnapshot.exists()) {
-            // If the document does not exist, create it
-            await setDoc(yearDocRef,{ date: day+'-'+month+'-'+year });
-          }
-
-          const HealthCheckCollectionRef = collection(
-            yearDocRef,
-            "HealthCheck"
-          );
-          const healthCheckPackageRef = doc(
-            db,
-            "HealthCheckPackage",
-            employee["P."]
-          );
-          const healthCheckSubCollectionRef = collection(
-            healthCheckPackageRef,
-            "HealthCheck"
-          );
-          const healthCheckDocsSnapshot = await getDocs(
-            healthCheckSubCollectionRef
-          );
-
-          healthCheckDocsSnapshot.forEach(async (healthCheckDoc) => {
-            const HealthCheckDocRef = doc(
-              HealthCheckCollectionRef,
-              healthCheckDoc.id
-            );
-            const healthCheckData = healthCheckDoc.data();
-            await setDoc(HealthCheckDocRef, healthCheckData);
-          });
-
-          console.log(
-            `Health check data for employee ${customEmployeeName} uploaded successfully.`
-          );
-          setProgress({ current: current++, total: convertedData.length });
-        } catch (error) {
-          console.error(
-            `Error uploading data for employee ${customEmployeeName}:`,
-            error
-          );
-        }
-      }
-      setLoading(false);
-      setModalVisible(true);
-    }
   };
   employees.sort((a, b) => a.ลำดับ - b.ลำดับ);
   return (
@@ -263,45 +76,16 @@ const Company: React.FC<any> = ({ route }) => {
           ))}
         </View>
       </ScrollView>
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={isModalVisible}
-        onRequestClose={() => {
-          setModalVisible(false);
-        }}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text>Employee Details:</Text>
-            {convertedData && convertedData.length > 0 && (
-              <View>
-                {Object.entries(convertedData[0]).map(([key, value], index) => (
-                  <Text
-                    key={index}
-                    style={key.includes("__EMPTY") ? { color: "red" } : {}}
-                  >
-                    {`${key} ${JSON.stringify(value)}`}
-                  </Text>
-                ))}
-              </View>
-            )}
-            
-            <Button
-              title="Pick and Convert XLSX to JSON"
-              onPress={pickDocument}
-            />
-            <Button title="Submit" onPress={Submit} />
-            {loading && (
-              <Text>
-                Uploading: {progress.current}/{progress.total}
-              </Text>
-            )}
-            <Button title="Close Modal" onPress={toggleModal} />
-          </View>
-        </View>
-      </Modal>
-      <TouchableOpacity style={styles.AddEmployee} onPress={toggleModal}>
+      <Portal>
+        <Modal
+          visible={visible}
+          onDismiss={hideModal}
+          contentContainerStyle={containerStyle}
+        >
+          <AddEmployee companyId={companyId} />
+        </Modal>
+      </Portal>
+      <TouchableOpacity style={styles.AddEmployee} onPress={showModal}>
         <Text>เพิ่มพนักงาน</Text>
       </TouchableOpacity>
     </View>

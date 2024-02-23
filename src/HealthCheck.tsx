@@ -9,6 +9,7 @@ interface HealthCheck {
   price: number;
   code: any;
   id: string;
+  result: string;
 }
 
 const HealthCheck = () => {
