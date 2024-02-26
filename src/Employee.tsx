@@ -1,7 +1,6 @@
 import {
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -19,22 +18,23 @@ import {
 } from "firebase/firestore";
 import { useReactToPrint } from "react-to-print";
 import DropDown from "react-native-paper-dropdown";
-let logoFromFile = require("../assets/Yanhee_logo.png");
+import { useRoute } from "@react-navigation/native";
+import { Text } from "react-native-paper";
 
-const Employee = ({ route }) => {
+const Employee = () => {
+  const route = useRoute();
   const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
   const [employeeData, setEmployeeData] = useState({});
   const [HealthCheckData, setHealthCheckData] = useState([]);
-  const [historyData, setHistoryData] = useState([]);
+  const [HistoryData, setHistoryData] = useState([]);
   const [showDropDown, setShowDropDown] = useState(false);
-  const [year, setyear] = useState (new Date().getFullYear().toString());
-  const historyOptions = historyData.map((id) => ({
-    label: id,
-    value: id,
+  const [year, setyear] = useState(new Date().getFullYear().toString());
+  const historyOptions = HistoryData.map((data) => ({
+    label: data.id,
+    value: data.id,
   }));
   useEffect(() => {
-    const currentYear = new Date().getFullYear().toString();
     const fetchDocument = async () => {
       try {
         const employeeDocRef = doc(
@@ -55,9 +55,13 @@ const Employee = ({ route }) => {
           "History"
         );
         const historyDocsSnapshot = await getDocs(historySubCollectionRef);
-        const ids = historyDocsSnapshot.docs.map((doc) => doc.id);
-        console.log("historyData:", ids);
-        setHistoryData(ids);
+        const historyData = historyDocsSnapshot.docs.map((doc) => ({
+          id: doc.id,
+          date: doc.data().date,
+          status: doc.data().status, 
+        }));
+        console.log("historyData:", historyData);
+        setHistoryData(historyData);
 
         if (employeeDocSnapshot.exists()) {
           const employeeData = employeeDocSnapshot.data();
@@ -93,7 +97,7 @@ const Employee = ({ route }) => {
     };
 
     fetchDocument();
-  }, [companyID, employeeID,year]);
+  }, [companyID, employeeID, year]);
 
   const handlePrint = useReactToPrint({
     content: () => componentRef.current,
@@ -121,14 +125,19 @@ const Employee = ({ route }) => {
                   </View>
                   <View style={styles.rightContainer}>
                     <QRCode
-                      value={companyID + "." + employeeData["HN."] + "." + name}
-                      logo={logoFromFile}
+                      value={
+                        companyID +
+                        "/" +
+                        employeeData["HN."] +
+                        "/" +
+                        healthCheck.namecode
+                      }
                       size={100}
                     />
                   </View>
                 </View>
                 <View style={styles.bottomContainer}>
-                  {name === "ตรวจร่างกายโดยแพทย์" ? (
+                  {healthCheck.namecode === "PE" ? (
                     <Text style={{ ...styles.text, fontSize: 22 }}>
                       {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
                     </Text>
@@ -146,30 +155,36 @@ const Employee = ({ route }) => {
     );
   });
 
-  const options = ["Option 1", "Option 2"];
   return (
     <ScrollView style={{ flex: 1 }}>
       <DropDown
-          label={"Year"}
-          visible={showDropDown}
-          showDropDown={() => setShowDropDown(true)}
-          onDismiss={() => setShowDropDown(false)}
-          value={year}
-          setValue={setyear}
-          list={historyOptions}
-        />
+        label={"Year"}
+        visible={showDropDown}
+        showDropDown={() => setShowDropDown(true)}
+        onDismiss={() => setShowDropDown(false)}
+        value={year}
+        setValue={setyear}
+        list={historyOptions}
+      />
       <View style={{ flex: 1, padding: 16 }}>
         <View>
           <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
             <Text>พิมพ์ทั้งหมด </Text>
           </TouchableOpacity>
-          <div>
+          <div >
             <ComponentToPrint ref={componentRef} companyID={companyID} />
           </div>
           <TouchableOpacity style={styles.incard2}>
             <Text>พิมพ์สติกเกอร์</Text>
           </TouchableOpacity>
         </View>
+        <Text>
+          {HistoryData.length > 0
+            ? HistoryData.find((item) => item.id === year)?.status
+              ? "Active"
+              : "Inactive"
+            : ""}
+        </Text>
 
         <View>
           <TextInput

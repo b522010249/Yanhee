@@ -1,16 +1,16 @@
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 import { useEffect, useState } from "react";
 import React from "react";
 import { useNavigation } from "@react-navigation/native";
-import { collection, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDocs,
+  onSnapshot,
+  updateDoc,
+} from "firebase/firestore";
 import { db } from "../database/config";
-import { Portal, Modal } from "react-native-paper";
+import { Portal, Modal, Card, Text, TextInput } from "react-native-paper";
 import AddEmployee from "./AddEmployee";
 
 interface Employee {
@@ -30,9 +30,11 @@ const Company: React.FC<any> = ({ route }) => {
   const { companyId } = route.params;
   const [employees, setEmployees] = useState<Employee[]>([]);
   const navigation = useNavigation();
-  const [isModalVisible, setModalVisible] = useState(false);
-  const [convertedData, setConvertedData] = useState<Employee[] | null>(null);
   const [visible, setVisible] = React.useState(false);
+  const [totalEmployees, setTotalEmployees] = useState<number>(0);
+  const [employeeStatus, setEmployeeStatus] = useState<Record<string, string>>({});
+
+ 
 
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
@@ -44,7 +46,70 @@ const Company: React.FC<any> = ({ route }) => {
         const employeesData = snapshot.docs.map(
           (doc) => ({ id: doc.id, ...doc.data() } as Employee)
         );
+        setTotalEmployees(employeesData.length);
         setEmployees(employeesData);
+        employeesData.forEach(async (employee) => {
+          const historyId = "2024"; // Replace with the actual field name
+
+          const historyRef = doc(
+            db,
+            "Company",
+            companyId,
+            "Employee",
+            employee["HN."],
+            "History",
+            "2024"
+          );
+
+          const healthChecksSnapshot = await getDocs(
+            collection(historyRef, "HealthCheck")
+          );
+
+          let isComplete = true;
+          let isOnGoing = false;
+          let isWaitingResults = false;
+          healthChecksSnapshot.forEach((healthCheckDoc) => {
+            const { Resultsstatus, CheckupStatus } = healthCheckDoc.data();
+            console.log(`Employee:${employee["HN."]}`);
+            console.log(`HealthCheckDoc ID: ${healthCheckDoc.id}`);
+            console.log(
+              `CheckupStatus: ${CheckupStatus}, Resultsstatus: ${Resultsstatus}`
+            );
+            if (!CheckupStatus || !Resultsstatus) {
+              isComplete = false;
+    
+              if (CheckupStatus) {
+                isOnGoing = true;
+              }
+            }
+    
+            if (CheckupStatus && Resultsstatus) {
+              isWaitingResults = true;
+            }
+          });
+
+          // Update the Historystatus field in the History document
+          let historyStatus = "Not Complete";
+
+          if (isComplete) {
+            historyStatus = "Complete";
+          } else if (isOnGoing) {
+            historyStatus = "On Going";
+          } else if (isWaitingResults) {
+            historyStatus = "Waiting Results";
+          }
+
+          await updateDoc(historyRef, { status: historyStatus });
+          setEmployeeStatus((prevStatus) => ({
+            ...prevStatus,
+            [employee.id]: historyStatus,
+          }));
+
+
+          console.log(
+            `Updated History ${historyId} status to ${historyStatus}`
+          );
+        });
       }
     );
 
@@ -56,6 +121,28 @@ const Company: React.FC<any> = ({ route }) => {
   employees.sort((a, b) => a.ลำดับ - b.ลำดับ);
   return (
     <View style={styles.container}>
+      <View style={{ flexDirection: "row" }}>
+        <Card>
+          <Card.Content>
+            <Text variant="titleLarge">จำนวนคนทั้งหมด:{totalEmployees}</Text>
+          </Card.Content>
+        </Card>
+        <Card>
+          <Card.Content>
+            <Text variant="titleLarge">
+              จำนวนคนที่เข้ารับการตรวจ:
+            </Text>
+          </Card.Content>
+        </Card>
+        <Card>
+          <Card.Content>
+            <Text variant="titleLarge">
+              จำนวนคนที่ยังไม่ได้เข้ารับการตรวจ :
+            </Text>
+          </Card.Content>
+        </Card>
+      </View>
+      <TextInput label="Search" />
       <ScrollView style={{ height: "100%", width: "100%" }}>
         <View style={styles.container}>
           {employees.map((employee) => (
@@ -71,7 +158,7 @@ const Company: React.FC<any> = ({ route }) => {
                 </Text>
                 <Text>P: {employee["P."]}</Text>
               </View>
-              <Text>สถานะ:</Text>
+              <Text>สถานะ:{employeeStatus[employee.id]}</Text>
             </TouchableOpacity>
           ))}
         </View>

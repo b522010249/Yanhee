@@ -8,10 +8,12 @@ const AddCompany: React.FC<any> =({ navigation })=>{
     const [showPicker, setShowPicker] = useState(false);
     const [Company, SetCompany] = useState<{
       name: string;
+      Engname:string;
       phone: number;
     }>
     ({
       name: '',
+      Engname:'',
       phone:0,
     });
   
@@ -26,7 +28,7 @@ const AddCompany: React.FC<any> =({ navigation })=>{
     };
     const Sumbit =async ()=>{
       try {
-        const healthCheckDocRef = doc(db, 'Company', Company.name);
+        const healthCheckDocRef = doc(db, 'Company', Company.Engname);
         await setDoc(healthCheckDocRef, Company);
   
         console.log('Company added');
@@ -44,6 +46,10 @@ const AddCompany: React.FC<any> =({ navigation })=>{
           value={Company.name}
           onChangeText={newText => SetCompany({ ...Company,name:newText})}
            />
+          <TextInput style={styles.labeltext} placeholder="กรอกชื่อบริษัทENg" 
+          value={Company.Engname}
+          onChangeText={newText => SetCompany({ ...Company,Engname:newText})}
+           />           
           <TextInput style={styles.labeltext} placeholder="กรอกเบอร์โทรติดต่อ" 
           keyboardType='numeric' value={Company.phone.toString()}
           onChangeText={newText => SetCompany({ ...Company,phone: parseFloat(newText) || 0 })}

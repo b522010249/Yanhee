@@ -2,13 +2,11 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View ,Button} from 'rea
 import { db } from '../database/config';
 import { useEffect, useState } from 'react';
 import { collection, getDocs, onSnapshot } from 'firebase/firestore';
-import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 
 const CompanyListScreen: React.FC<any> =({ navigation })=>{
   const [companies, setCompanies] = useState<any[]>([]);
   const [numEmployees, setNumEmployees] = useState<Record<string, number>>({});
-  const { navigate } = useNavigation();
   useEffect(() => {
     const fetchData = async () => {
       const companiesCollection = collection(db, 'Company');
