@@ -10,7 +10,8 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
     price: number;
     amount_sticker: number;
     details: { id: number }[];
-    status: boolean ;
+    Resultsstatus: boolean ;
+    CheckupStatus : boolean;
   }>
   ({
     name: '',
@@ -18,7 +19,8 @@ const AddHeatlhCheck: React.FC<any> =({ navigation })=>{
     price: 0,
     amount_sticker:1,
     code: [],
-    status: false
+    resultsstatus: false ,
+    CheckupStatus: false
   });
   const Sumbit = async () => {
     try {

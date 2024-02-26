@@ -50,10 +50,7 @@ const AddEmployee = (props: { companyId: any }) => {
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState({ current: 0, total: 0 });
   const [inputDate, setInputDate] = React.useState(new Date());
-  const convertYear = (thaiYear: number) => {
-    // Check if the year is in Thai solar calendar (AD + 543)
-    return thaiYear > 10000 ? thaiYear : thaiYear - 543;
-  };
+
   const pickDocument = async () => {
     try {
       let result = await DocumentPicker.getDocumentAsync({});
@@ -172,7 +169,7 @@ const AddEmployee = (props: { companyId: any }) => {
 
           if (!yearDocSnapshot.exists()) {
             // If the document does not exist, create it
-            await setDoc(yearDocRef, { date: day + "-" + month + "-" + year });
+            await setDoc(yearDocRef, { date: day + "-" + month + "-" + year,status:''});
           }
 
           const HealthCheckCollectionRef = collection(
