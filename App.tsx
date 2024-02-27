@@ -1,5 +1,6 @@
-import { View, StyleSheet, SafeAreaView } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 //navigate path
@@ -13,7 +14,6 @@ import Company from "./src/Company";
 import HealthCheck from "./src/HealthCheck";
 import Employee from "./src/Employee";
 import AddExtra from "./src/AddExtra";
-import Guest from "./src/Guest";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import SearchScan from "./src/SearchScan";
 
@@ -27,10 +27,16 @@ export default function App() {
   };
 
   const Stack = createNativeStackNavigator();
-  //SearchScan();
+
   return (
-    <PaperProvider theme={theme}>
-      <SafeAreaView style={{ flex: 1}}>
+    <SafeAreaProvider
+      style={{
+        flex: 1,
+        paddingTop: Platform.OS === "ios" ? 35 : 0,
+        backgroundColor: "black",
+      }}
+    >
+      <PaperProvider theme={theme}>
         <View style={styles.Screen}>
           <View style={styles.Body}>
             <NavigationContainer>
@@ -51,15 +57,13 @@ export default function App() {
                 <Stack.Screen name="HealthCheck" component={HealthCheck} />
                 <Stack.Screen name="Employee" component={Employee} />
                 <Stack.Screen name="AddExtra" component={AddExtra} />
-                <Stack.Screen name="SearchScan" component={SearchScan} />
+                {/* <Stack.Screen name="SearchScan" component={SearchScan} /> */}
               </Stack.Navigator>
             </NavigationContainer>
-            <View style={{ height: 70 }} />
-            <View style={styles.Footer} />
           </View>
         </View>
-      </SafeAreaView>
-    </PaperProvider>
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
 
