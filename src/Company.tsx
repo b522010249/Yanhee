@@ -44,10 +44,18 @@ const Company: React.FC<any> = ({ route }) => {
     { label: "2024", value: "2024" },
     { label: "2025", value: "2025" },
   ];
+  const [state, setState] = React.useState({ open: false });
+
+  const onStateChange = ({ open }) => setState({ open });
+
+  const { open } = state;
 
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
-  const containerStyle = { backgroundColor: "white", padding: 20 };
+  const containerStyle = {
+    backgroundColor: "rgba(255, 255, 255, 1)",
+    padding: 20,
+  };
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "Company", companyId, "Employee"),
@@ -75,17 +83,12 @@ const Company: React.FC<any> = ({ route }) => {
           );
 
           let isComplete = true;
-          let isOnGoing = false;
-          let isWaitingResults = false;
           let checkupStatusCount = 0;
           let hasIncompleteResults = false;
+          let isOnGoing = false;
+          let isWaitingResults = false;
           healthChecksSnapshot.forEach((healthCheckDoc) => {
             const { Resultsstatus, CheckupStatus } = healthCheckDoc.data();
-            console.log(`Employee:${employee["HN."]}`);
-            console.log(`HealthCheckDoc ID: ${healthCheckDoc.id}`);
-            console.log(
-              `CheckupStatus: ${CheckupStatus}, Resultsstatus: ${Resultsstatus}`
-            );
             if (!CheckupStatus || !Resultsstatus) {
               isComplete = false;
 
@@ -173,13 +176,13 @@ const Company: React.FC<any> = ({ route }) => {
         <Card>
           <Card.Content>
             <Text variant="titleLarge">
-              จำนวนคนที่ยังไม่ได้เข้ารับการตรวจ :{notCompleteCount}
+              คนที่ยังไม่ได้ตรวจ :{notCompleteCount}
             </Text>
           </Card.Content>
         </Card>
         <Card>
           <Card.Content>
-            <Text variant="titleLarge">กำลังเข้ารับการตรวจ:{onGoingCount}</Text>
+            <Text variant="titleLarge">กำลังตรวจ:{onGoingCount}</Text>
           </Card.Content>
         </Card>
 
@@ -218,16 +221,34 @@ const Company: React.FC<any> = ({ route }) => {
           ))}
         </View>
       </ScrollView>
+      <Modal
+        visible={visible}
+        onDismiss={hideModal}
+        contentContainerStyle={containerStyle}
+      >
+        <AddEmployee companyId={companyId} />
+      </Modal>
       <Portal>
-        <Modal
-          visible={visible}
-          onDismiss={hideModal}
-          contentContainerStyle={containerStyle}
-        >
-          <AddEmployee companyId={companyId} />
-        </Modal>
+        <FAB.Group
+          open={open}
+          visible
+          icon={open ? "plus-minus" : "plus"}
+          actions={[
+            { icon: "plus", onPress: showModal },
+            {
+              icon: "barcode-scan",
+              label: "barcode-scan",
+              onPress: () => console.log("Pressed star"),
+            },
+          ]}
+          onStateChange={onStateChange}
+          onPress={() => {
+            if (open) {
+              // do something if the speed dial is open
+            }
+          }}
+        />
       </Portal>
-      <FAB style={styles.AddEmployee} icon="plus" onPress={showModal} />
     </View>
   );
 };

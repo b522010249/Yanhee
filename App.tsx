@@ -22,7 +22,10 @@ export default function App() {
     ...DefaultTheme,
     colors: {
       ...DefaultTheme.colors,
-      background: "transparent", // Set the background color to the desired value
+      background: "transparent", 
+      primary: '#019874', 
+      secondary: '#4c6359', 
+      tertiary: '#3F6375', 
     },
   };
 
@@ -57,7 +60,7 @@ export default function App() {
                 <Stack.Screen name="HealthCheck" component={HealthCheck} />
                 <Stack.Screen name="Employee" component={Employee} />
                 <Stack.Screen name="AddExtra" component={AddExtra} />
-                {/* <Stack.Screen name="SearchScan" component={SearchScan} /> */}
+                <Stack.Screen name="SearchScan" component={SearchScan} />
               </Stack.Navigator>
             </NavigationContainer>
           </View>
