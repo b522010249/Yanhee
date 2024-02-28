@@ -19,15 +19,52 @@ import SearchScan from "./src/SearchScan";
 
 export default function App() {
   const theme = {
-    ...DefaultTheme,
     colors: {
-      ...DefaultTheme.colors,
-      background: "transparent", 
-      primary: '#019874', 
-      secondary: '#4c6359', 
-      tertiary: '#3F6375', 
-    },
+      primary: "rgb(0, 108, 81)",
+      onPrimary: "rgb(255, 255, 255)",
+      primaryContainer: "rgb(131, 248, 206)",
+      onPrimaryContainer: "rgb(0, 33, 22)",
+      secondary: "rgb(76, 99, 89)",
+      onSecondary: "rgb(255, 255, 255)",
+      secondaryContainer: "rgb(206, 233, 219)",
+      onSecondaryContainer: "rgb(8, 32, 24)",
+      tertiary: "rgb(63, 99, 117)",
+      onTertiary: "rgb(255, 255, 255)",
+      tertiaryContainer: "rgb(194, 232, 253)",
+      onTertiaryContainer: "rgb(0, 30, 43)",
+      error: "rgb(186, 26, 26)",
+      onError: "rgb(255, 255, 255)",
+      errorContainer: "rgb(255, 218, 214)",
+      onErrorContainer: "rgb(65, 0, 2)",
+      background: "rgb(251, 253, 249)",
+      onBackground: "rgb(25, 28, 26)",
+      surface: "rgb(251, 253, 249)",
+      onSurface: "rgb(25, 28, 26)",
+      surfaceVariant: "rgb(219, 229, 222)",
+      onSurfaceVariant: "rgb(64, 73, 68)",
+      outline: "rgb(112, 121, 116)",
+      outlineVariant: "rgb(191, 201, 194)",
+      shadow: "rgb(0, 0, 0)",
+      scrim: "rgb(0, 0, 0)",
+      inverseSurface: "rgb(46, 49, 47)",
+      inverseOnSurface: "rgb(239, 241, 238)",
+      inversePrimary: "rgb(101, 219, 179)",
+      elevation: {
+        level0: "transparent",
+        level1: "rgb(238, 246, 241)",
+        level2: "rgb(231, 241, 236)",
+        level3: "rgb(223, 237, 231)",
+        level4: "rgb(221, 236, 229)",
+        level5: "rgb(216, 233, 226)"
+      },
+      surfaceDisabled: "rgba(25, 28, 26, 0.12)",
+      onSurfaceDisabled: "rgba(25, 28, 26, 0.38)",
+      backdrop: "rgba(41, 50, 46, 0.4)"
+    }
   };
+  
+  // You can use 'theme' as needed in your application
+  
 
   const Stack = createNativeStackNavigator();
 
