@@ -1,5 +1,6 @@
-import { View, StyleSheet, SafeAreaView } from "react-native";
+import { View, StyleSheet, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import React from "react";
 //navigate path
@@ -13,24 +14,69 @@ import Company from "./src/Company";
 import HealthCheck from "./src/HealthCheck";
 import Employee from "./src/Employee";
 import AddExtra from "./src/AddExtra";
-import Guest from "./src/Guest";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import SearchScan from "./src/SearchScan";
 
 export default function App() {
   const theme = {
-    ...DefaultTheme,
     colors: {
-      ...DefaultTheme.colors,
-      background: "transparent", // Set the background color to the desired value
-    },
+      primary: "rgb(0, 108, 81)",
+      onPrimary: "rgb(255, 255, 255)",
+      primaryContainer: "rgb(131, 248, 206)",
+      onPrimaryContainer: "rgb(0, 33, 22)",
+      secondary: "rgb(76, 99, 89)",
+      onSecondary: "rgb(255, 255, 255)",
+      secondaryContainer: "rgb(206, 233, 219)",
+      onSecondaryContainer: "rgb(8, 32, 24)",
+      tertiary: "rgb(63, 99, 117)",
+      onTertiary: "rgb(255, 255, 255)",
+      tertiaryContainer: "rgb(194, 232, 253)",
+      onTertiaryContainer: "rgb(0, 30, 43)",
+      error: "rgb(186, 26, 26)",
+      onError: "rgb(255, 255, 255)",
+      errorContainer: "rgb(255, 218, 214)",
+      onErrorContainer: "rgb(65, 0, 2)",
+      background: "rgb(251, 253, 249)",
+      onBackground: "rgb(25, 28, 26)",
+      surface: "rgb(251, 253, 249)",
+      onSurface: "rgb(25, 28, 26)",
+      surfaceVariant: "rgb(219, 229, 222)",
+      onSurfaceVariant: "rgb(64, 73, 68)",
+      outline: "rgb(112, 121, 116)",
+      outlineVariant: "rgb(191, 201, 194)",
+      shadow: "rgb(0, 0, 0)",
+      scrim: "rgb(0, 0, 0)",
+      inverseSurface: "rgb(46, 49, 47)",
+      inverseOnSurface: "rgb(239, 241, 238)",
+      inversePrimary: "rgb(101, 219, 179)",
+      elevation: {
+        level0: "transparent",
+        level1: "rgb(238, 246, 241)",
+        level2: "rgb(231, 241, 236)",
+        level3: "rgb(223, 237, 231)",
+        level4: "rgb(221, 236, 229)",
+        level5: "rgb(216, 233, 226)"
+      },
+      surfaceDisabled: "rgba(25, 28, 26, 0.12)",
+      onSurfaceDisabled: "rgba(25, 28, 26, 0.38)",
+      backdrop: "rgba(41, 50, 46, 0.4)"
+    }
   };
+  
+  // You can use 'theme' as needed in your application
+  
 
   const Stack = createNativeStackNavigator();
-  //SearchScan();
+
   return (
-    <PaperProvider theme={theme}>
-      <SafeAreaView style={{ flex: 1}}>
+    <SafeAreaProvider
+      style={{
+        flex: 1,
+        paddingTop: Platform.OS === "ios" ? 35 : 0,
+        backgroundColor: "black",
+      }}
+    >
+      <PaperProvider theme={theme}>
         <View style={styles.Screen}>
           <View style={styles.Body}>
             <NavigationContainer>
@@ -54,12 +100,10 @@ export default function App() {
                 <Stack.Screen name="SearchScan" component={SearchScan} />
               </Stack.Navigator>
             </NavigationContainer>
-            <View style={{ height: 70 }} />
-            <View style={styles.Footer} />
           </View>
         </View>
-      </SafeAreaView>
-    </PaperProvider>
+      </PaperProvider>
+    </SafeAreaProvider>
   );
 }
 

@@ -10,8 +10,9 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { db } from "../database/config";
-import { Portal, Modal, Card, Text, TextInput } from "react-native-paper";
+import { Portal, Modal, Card, Text, TextInput, FAB } from "react-native-paper";
 import AddEmployee from "./AddEmployee";
+import DropDown from "react-native-paper-dropdown";
 
 interface Employee {
   id: string;
@@ -32,13 +33,29 @@ const Company: React.FC<any> = ({ route }) => {
   const navigation = useNavigation();
   const [visible, setVisible] = React.useState(false);
   const [totalEmployees, setTotalEmployees] = useState<number>(0);
-  const [employeeStatus, setEmployeeStatus] = useState<Record<string, string>>({});
+  const [employeeStatus, setEmployeeStatus] = useState<Record<string, string>>(
+    {}
+  );
+  const [year, setyear] = useState(new Date().getFullYear().toString());
+  const [showDropDown, setShowDropDown] = useState(false);
+  const years = [
+    { label: "2022", value: "2022" },
+    { label: "2023", value: "2023" },
+    { label: "2024", value: "2024" },
+    { label: "2025", value: "2025" },
+  ];
+  const [state, setState] = React.useState({ open: false });
 
- 
+  const onStateChange = ({ open }) => setState({ open });
+
+  const { open } = state;
 
   const showModal = () => setVisible(true);
   const hideModal = () => setVisible(false);
-  const containerStyle = { backgroundColor: "white", padding: 20 };
+  const containerStyle = {
+    backgroundColor: "rgba(255, 255, 255, 1)",
+    padding: 20,
+  };
   useEffect(() => {
     const unsubscribe = onSnapshot(
       collection(db, "Company", companyId, "Employee"),
@@ -66,25 +83,22 @@ const Company: React.FC<any> = ({ route }) => {
           );
 
           let isComplete = true;
+          let checkupStatusCount = 0;
+          let hasIncompleteResults = false;
           let isOnGoing = false;
           let isWaitingResults = false;
           healthChecksSnapshot.forEach((healthCheckDoc) => {
             const { Resultsstatus, CheckupStatus } = healthCheckDoc.data();
-            console.log(`Employee:${employee["HN."]}`);
-            console.log(`HealthCheckDoc ID: ${healthCheckDoc.id}`);
-            console.log(
-              `CheckupStatus: ${CheckupStatus}, Resultsstatus: ${Resultsstatus}`
-            );
             if (!CheckupStatus || !Resultsstatus) {
               isComplete = false;
-    
-              if (CheckupStatus) {
-                isOnGoing = true;
+
+              if (CheckupStatus && !Resultsstatus) {
+                hasIncompleteResults = true;
               }
             }
-    
-            if (CheckupStatus && Resultsstatus) {
-              isWaitingResults = true;
+
+            if (CheckupStatus) {
+              checkupStatusCount++;
             }
           });
 
@@ -93,10 +107,15 @@ const Company: React.FC<any> = ({ route }) => {
 
           if (isComplete) {
             historyStatus = "Complete";
-          } else if (isOnGoing) {
-            historyStatus = "On Going";
-          } else if (isWaitingResults) {
+          } else if (
+            checkupStatusCount === healthChecksSnapshot.size &&
+            hasIncompleteResults
+          ) {
+            isWaitingResults = true;
             historyStatus = "Waiting Results";
+          } else if (checkupStatusCount > 0) {
+            isOnGoing = true;
+            historyStatus = "On Going";
           }
 
           await updateDoc(historyRef, { status: historyStatus });
@@ -104,7 +123,6 @@ const Company: React.FC<any> = ({ route }) => {
             ...prevStatus,
             [employee.id]: historyStatus,
           }));
-
 
           console.log(
             `Updated History ${historyId} status to ${historyStatus}`
@@ -118,10 +136,38 @@ const Company: React.FC<any> = ({ route }) => {
   const handleCompanyPress = (employeeID: string, companyID: string) => {
     navigation.navigate("Employee", { employeeID, companyID });
   };
+  const notCompleteCount = Object.values(employeeStatus).filter(
+    (status) => status === "Not Complete"
+  ).length;
+  const onGoingCount = Object.values(employeeStatus).filter(
+    (status) => status === "On Going"
+  ).length;
+  const CompleteCount = Object.values(employeeStatus).filter(
+    (status) => status === "Complete"
+  ).length;
+  const WaitingCount = Object.values(employeeStatus).filter(
+    (status) => status === "Waiting Results"
+  ).length;
+
   employees.sort((a, b) => a.ลำดับ - b.ลำดับ);
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: "row" }}>
+      <DropDown
+        label={"Year"}
+        visible={showDropDown}
+        showDropDown={() => setShowDropDown(true)}
+        onDismiss={() => setShowDropDown(false)}
+        value={year}
+        setValue={setyear}
+        list={years}
+      />
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          justifyContent: "center",
+        }}
+      >
         <Card>
           <Card.Content>
             <Text variant="titleLarge">จำนวนคนทั้งหมด:{totalEmployees}</Text>
@@ -130,51 +176,79 @@ const Company: React.FC<any> = ({ route }) => {
         <Card>
           <Card.Content>
             <Text variant="titleLarge">
-              จำนวนคนที่เข้ารับการตรวจ:
+              คนที่ยังไม่ได้ตรวจ :{notCompleteCount}
             </Text>
           </Card.Content>
         </Card>
         <Card>
           <Card.Content>
-            <Text variant="titleLarge">
-              จำนวนคนที่ยังไม่ได้เข้ารับการตรวจ :
-            </Text>
+            <Text variant="titleLarge">กำลังตรวจ:{onGoingCount}</Text>
+          </Card.Content>
+        </Card>
+
+        <Card>
+          <Card.Content>
+            <Text variant="titleLarge">รอผลตรวจ :{WaitingCount}</Text>
+          </Card.Content>
+        </Card>
+        <Card>
+          <Card.Content>
+            <Text variant="titleLarge">ตรวจเสร็จสิ้น :{CompleteCount}</Text>
           </Card.Content>
         </Card>
       </View>
       <TextInput label="Search" />
       <ScrollView style={{ height: "100%", width: "100%" }}>
-        <View style={styles.container}>
+        <View style={styles.container2}>
           {employees.map((employee) => (
             <TouchableOpacity
-              style={styles.card}
               key={employee.ชื่อจริง}
               onPress={() => handleCompanyPress(employee.id, companyId)}
             >
-              <View style={styles.incard1}>
-                <Text>ลำดับ: {employee.ลำดับ}</Text>
-                <Text>
-                  ชื่อ: {employee.ชื่อจริง} {employee.นามสกุล}
-                </Text>
-                <Text>P: {employee["P."]}</Text>
-              </View>
-              <Text>สถานะ:{employeeStatus[employee.id]}</Text>
+              <Card style={{ height: 200, width: 300 }}>
+                <Card.Content>
+                  <Text variant="titleLarge">ลำดับ: {employee.ลำดับ}</Text>
+                  <Text variant="titleLarge">
+                    ชื่อ: {employee.ชื่อจริง} {employee.นามสกุล}
+                  </Text>
+                  <Text variant="titleLarge">P: {employee["P."]}</Text>
+                  <Text variant="titleLarge">
+                    สถานะ:{employeeStatus[employee.id]}
+                  </Text>
+                </Card.Content>
+              </Card>
             </TouchableOpacity>
           ))}
         </View>
       </ScrollView>
+      <Modal
+        visible={visible}
+        onDismiss={hideModal}
+        contentContainerStyle={containerStyle}
+      >
+        <AddEmployee companyId={companyId} />
+      </Modal>
       <Portal>
-        <Modal
-          visible={visible}
-          onDismiss={hideModal}
-          contentContainerStyle={containerStyle}
-        >
-          <AddEmployee companyId={companyId} />
-        </Modal>
+        <FAB.Group
+          open={open}
+          visible
+          icon={open ? "plus-minus" : "plus"}
+          actions={[
+            { icon: "plus", onPress: showModal },
+            {
+              icon: "barcode-scan",
+              label: "barcode-scan",
+              onPress: () => console.log("Pressed star"),
+            },
+          ]}
+          onStateChange={onStateChange}
+          onPress={() => {
+            if (open) {
+              // do something if the speed dial is open
+            }
+          }}
+        />
       </Portal>
-      <TouchableOpacity style={styles.AddEmployee} onPress={showModal}>
-        <Text>เพิ่มพนักงาน</Text>
-      </TouchableOpacity>
     </View>
   );
 };
@@ -184,6 +258,14 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
     justifyContent: "center",
+  },
+  container2: {
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "center",
+    alignContent: "space-around",
   },
   card: {
     width: 400,
@@ -209,13 +291,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     right: 0,
     margin: 10,
-    backgroundColor: "green",
-    padding: 10,
-    borderTopColor: "#e3e3e3",
-    borderTopWidth: 2,
     zIndex: 1,
-    width: 100,
-    height: 100,
   },
   modalContainer: {
     flex: 1,

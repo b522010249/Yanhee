@@ -1,19 +1,22 @@
 import React from "react";
-import { View,StyleSheet, ScrollView, TouchableOpacity,Text } from "react-native";
+import { View,StyleSheet, ScrollView, TouchableOpacity,Text, Platform } from "react-native";
 import useScanDetection from "use-scan-detection-react18";
 
 const Home: React.FC<any> = ({ navigation })=>{
-    useScanDetection({
-        onComplete: (code) => {
-          const filteredCode = code.replace(/Alt0012/g, "").replace(/Shift/g, "");
-    
-          console.log(filteredCode);
-          // Handle the filtered barcode, e.g., update state or trigger actions
-          const [companyID, employeeID] = filteredCode.split("/");
-    
-          navigation.navigate("Employee", { companyID, employeeID });
-        },
-      });
+    if(Platform.OS==="web"){
+        useScanDetection({
+            onComplete: (code) => {
+              const filteredCode = code.replace(/Alt0012/g, "").replace(/Shift/g, "");
+        
+              console.log(filteredCode);
+              // Handle the filtered barcode, e.g., update state or trigger actions
+              const [companyID, employeeID] = filteredCode.split("/");
+        
+              navigation.navigate("Employee", { companyID, employeeID });
+            },
+          });
+
+    }
     return(
         <View style={styles.main}>
             <ScrollView >
