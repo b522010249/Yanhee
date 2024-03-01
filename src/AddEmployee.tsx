@@ -1,34 +1,11 @@
 import { StyleSheet, View, Platform } from "react-native";
 import React from "react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system";
 import * as XLSX from "xlsx";
-import {
-  DefaultTheme,
-  Provider as PaperProvider,
-  Modal,
-  Portal,
-  Text,
-  Button,
-  Card,
-  Avatar,
-  IconButton,
-  TouchableRipple,
-  Searchbar,
-  ProgressBar,
-} from "react-native-paper";
-import {
-  collection,
-  where,
-  getDocs,
-  setDoc,
-  doc,
-  query,
-  addDoc,
-  onSnapshot,
-  getDoc,
-} from "firebase/firestore";
+import { DefaultTheme, Text, Button, ProgressBar } from "react-native-paper";
+import { collection, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
 import { db } from "../database/config";
 import { DatePickerInput } from "react-native-paper-dates";
 
@@ -143,7 +120,8 @@ const AddEmployee = (props: { companyId: any }) => {
       setProgress({ current: 0, total: convertedData.length });
       console.log(convertedData);
       let current = 0;
-      for (const employee of convertedData) {
+      for (const employee of convertedData as { [key: string]: any }[]) {
+        employee["ลำดับ"] = Number(employee["ลำดับ"]);
         const EmployeeCollectionRef = collection(
           db,
           "Company",
@@ -160,7 +138,7 @@ const AddEmployee = (props: { companyId: any }) => {
           );
           const HistoryCollectionRef = collection(EmployeeDocRef, "History");
           const day = inputDate.getDate();
-          const month = inputDate.getMonth()+1;
+          const month = inputDate.getMonth() + 1;
           const year = inputDate.getFullYear();
           const yearDocRef = doc(HistoryCollectionRef, year.toString());
 
@@ -169,7 +147,10 @@ const AddEmployee = (props: { companyId: any }) => {
 
           if (!yearDocSnapshot.exists()) {
             // If the document does not exist, create it
-            await setDoc(yearDocRef, { date: day + "-" + month + "-" + year,status:''});
+            await setDoc(yearDocRef, {
+              date: day + "-" + month + "-" + year,
+              status: "",
+            });
           }
 
           const HealthCheckCollectionRef = collection(

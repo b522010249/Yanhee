@@ -33,31 +33,6 @@ const SearchScan: React.FC = () => {
       >
         เสร็จสิ้น
       </Button>
-      <TextInput></TextInput>
-      <Portal>
-        <FAB.Group
-          theme={theme}
-          fabStyle={{ backgroundColor: 'primary' }}
-          open={open}
-          visible
-          icon={open ? "plus-minus" : "plus"}
-          
-          actions={[
-            { icon: "plus", onPress: () => console.log("Pressed star") },
-            {
-              icon: "barcode-scan",
-              label: "barcode-scan",
-              onPress: () => console.log("Pressed star"),
-            },
-          ]}
-          onStateChange={onStateChange}
-          onPress={() => {
-            if (open) {
-              // do something if the speed dial is open
-            }
-          }}
-        />
-      </Portal>
     </View>
   );
 };
