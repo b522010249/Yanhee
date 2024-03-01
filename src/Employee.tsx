@@ -6,7 +6,6 @@ import {
   View,
 } from "react-native";
 import React, { useEffect, useRef, useState } from "react";
-import { Row, Table } from "react-native-table-component";
 import QRCode from "react-native-qrcode-svg";
 import { db } from "../database/config";
 import {
@@ -19,7 +18,7 @@ import {
 import { useReactToPrint } from "react-to-print";
 import DropDown from "react-native-paper-dropdown";
 import { useRoute } from "@react-navigation/native";
-import { Text } from "react-native-paper";
+import { DataTable, Text } from "react-native-paper";
 
 const Employee = () => {
   const route = useRoute();
@@ -58,7 +57,7 @@ const Employee = () => {
         const historyData = historyDocsSnapshot.docs.map((doc) => ({
           id: doc.id,
           date: doc.data().date,
-          status: doc.data().status, 
+          status: doc.data().status,
         }));
         console.log("historyData:", historyData);
         setHistoryData(historyData);
@@ -85,7 +84,18 @@ const Employee = () => {
             id: doc.id,
             ...doc.data(),
           }));
-          setHealthCheckData(healthCheckData);
+          const bloodCheckData = healthCheckData.filter((entry) => entry.type === "blood check");
+          const otherCheckData = healthCheckData.filter((entry) => entry.type !== "blood check");
+        
+          // Store only one entry for "blood check" type
+          const filteredBloodCheckData = bloodCheckData.length > 0 ? [bloodCheckData[0]] : [];
+        
+          // Concatenate the filtered "blood check" data with other types
+          const updatedHealthCheckData = [...filteredBloodCheckData, ...otherCheckData];
+        
+          // Set the state accordingly
+          setHealthCheckData(updatedHealthCheckData);
+          console.log(updatedHealthCheckData);
         });
 
         return () => {
@@ -104,10 +114,13 @@ const Employee = () => {
   });
 
   const ComponentToPrint = React.forwardRef(({ companyID }, ref) => {
+
+
     return (
       <View ref={ref} style={styles.printPage}>
         {HealthCheckData.map((healthCheck, index) => {
-          const { amount_sticker, name } = healthCheck;
+          const { amount_sticker, name, type } = healthCheck;
+
           const stickerElements = Array.from(
             { length: amount_sticker },
             (_, i) => (
@@ -130,6 +143,8 @@ const Employee = () => {
                         "/" +
                         employeeData["HN."] +
                         "/" +
+                        year +
+                        "/" +
                         healthCheck.namecode
                       }
                       size={100}
@@ -137,7 +152,13 @@ const Employee = () => {
                   </View>
                 </View>
                 <View style={styles.bottomContainer}>
-                  {healthCheck.namecode === "PE" ? (
+                  {type === "blood check" ? (
+                      <Text style={{ ...styles.text, fontSize: 22 }}>
+                        ตรวจรายการเจาะเลือด
+                      </Text>
+
+                  ) : // Render content based on the existing condition
+                  healthCheck.namecode === "PE" ? (
                     <Text style={{ ...styles.text, fontSize: 22 }}>
                       {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
                     </Text>
@@ -171,7 +192,8 @@ const Employee = () => {
           <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
             <Text>พิมพ์ทั้งหมด </Text>
           </TouchableOpacity>
-          <div >
+          {/* style={{ display: "none" }} */}
+          <div>
             <ComponentToPrint ref={componentRef} companyID={companyID} />
           </div>
           <TouchableOpacity style={styles.incard2}>
@@ -197,13 +219,24 @@ const Employee = () => {
               padding: 8,
             }}
           />
-          <Table borderStyle={{ borderWidth: 1, borderColor: "#C1C0B9" }}>
-            <Row
-              data={["โปรแกรมตรวจสุขภาพ", "สถานะ", "เวลา"]}
-              style={{ height: 40, backgroundColor: "#f1f8ff" }}
-              textStyle={{ fontSize: 12, fontWeight: "bold", marginLeft: 20 }}
-            />
-          </Table>
+          <DataTable>
+            <DataTable.Header>
+              <DataTable.Title>รายการตรวจสุขภาพ</DataTable.Title>
+              <DataTable.Title numeric>สถานะการตรวจสุขภาพ</DataTable.Title>
+              <DataTable.Title numeric>สถานะผลตรวจสุขภาพ</DataTable.Title>
+            </DataTable.Header>
+            {HealthCheckData.map((item) => (
+              <DataTable.Row key={item.id}>
+                <DataTable.Cell>{item.name}</DataTable.Cell>
+                <DataTable.Cell numeric>
+                  {item.CheckupStatus.toString()}
+                </DataTable.Cell>
+                <DataTable.Cell numeric>
+                  {item.Resultsstatus.toString()}
+                </DataTable.Cell>
+              </DataTable.Row>
+            ))}
+          </DataTable>
           <View>
             <TextInput placeholder="ความดันครั้งที่ 1" />
             <TextInput placeholder="ความดันครั้งที่ 2" />
