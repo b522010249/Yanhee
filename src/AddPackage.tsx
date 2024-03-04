@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, StyleSheet, Text, TextInput, Button } from "react-native";
 
-import SectionedMultiSelect from "react-native-sectioned-multi-select";
+import { PaperSelect } from "react-native-paper-select";
+
 import Icon from "react-native-vector-icons/MaterialIcons";
 import {
   collection,
@@ -13,17 +14,35 @@ import {
 import { db } from "../database/config";
 
 interface HealthCheck {
-  name: string;
-  namecode:string;
-  price: number;
-  code: any;
-  id: number;
-}
+  id: any;
 
+  name: string;
+  nameeng: string;
+  namecode: string;
+  price: number;
+  amount_sticker: number;
+  codename: number;
+}
+interface ListItem {
+  _id: string;
+  // Add other properties as needed
+}
+interface SelectedItems {
+  text: string;
+  selectedList: ListItem[];
+  error: string;
+}
 const AddPackage: React.FC<any> = ({ navigation }) => {
-  const [selectedItems, setSelectedItems] = useState([]);
   const [firebaseData, setFirebaseData] = useState<HealthCheck[]>([]);
-  const [Packagename, setPackageName] = useState<any>([]);
+  const [Packagename, setPackageName] = useState<string>("");
+  const [Itemsselected, setSelectedItems] = useState<SelectedItems | null>(
+    null
+  );
+  const transformedData = firebaseData.map((item) => ({
+    _id: item.id.toString(), // adjust as needed
+    value: item.id, // or any property that uniquely identifies the item
+    ...item,
+  }));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -43,37 +62,20 @@ const AddPackage: React.FC<any> = ({ navigation }) => {
     fetchData();
   }, []);
   useEffect(() => {
-    firebaseData.forEach((item) => {
-      console.log(`Name: ${item.name}, Price: ${item.price}`);
-      if (item.code) {
-        item.code.forEach((codeItem) => {
-          console.log(`Code Name: ${codeItem.name}`);
-        });
-      }
-    });
+    console.log(firebaseData);
   }, [firebaseData]);
 
-  const calculateTotalPrice = () => {
-    let totalPrice = 0;
-    selectedItems.forEach((itemId) => {
-      const selectedItem = firebaseData.find((item) => item.id === itemId);
-      if (selectedItem) {
-        totalPrice += selectedItem.price;
-      }
-    });
-    return totalPrice;
-  };
   const Submit = async () => {
     // Map the unique identifiers to the corresponding items in firebaseData
-    const selectedItemsInfo = selectedItems.map((itemId) => {
-      const selectedItem = firebaseData.find((item) => item.id === itemId);
-      return selectedItem;
-    });
-    console.log(selectedItemsInfo);
+
+    console.log(Itemsselected);
+
+    
+    
 
     const packageData = {
       Packagename,
-      Totalprice: calculateTotalPrice(),
+      Totalprice: "2",
       // Healthcheck: selectedItemsInfo.map((item) => ({
       //   id: item?.id,
       //   name: item?.name,
@@ -85,33 +87,39 @@ const AddPackage: React.FC<any> = ({ navigation }) => {
     const PackageDocRef = doc(db, "HealthCheckPackage", Packagename);
     await setDoc(PackageDocRef, packageData);
     const healthCheckCollectionRef = collection(PackageDocRef, "HealthCheck");
-
-    // Add each health check as a document within the HealthCheck collection
-    for (const healthCheck of selectedItemsInfo) {
-      const HealthCheckDocRef = doc(
-        healthCheckCollectionRef,
-        healthCheck?.namecode
-      );
+    for (const healthCheck of Itemsselected.selectedList) {
+      const HealthCheckDocRef = doc(healthCheckCollectionRef, healthCheck.id);
       await setDoc(HealthCheckDocRef, healthCheck);
     }
   };
+
   return (
     <View style={styles.main}>
-      <SectionedMultiSelect
-        IconRenderer={Icon}
-        items={firebaseData}
-        selectedItems={selectedItems}
-        onSelectedItemsChange={(items) => setSelectedItems(items)}
-        uniqueKey="id"
-        showDropDowns={true}
-        styles={{
-          button: {
-            backgroundColor: "blue",
-          },
+      <PaperSelect
+        label="เลือกรายการตรวจ"
+        arrayList={transformedData}
+        value={Itemsselected ? Itemsselected.text : ""}
+        onSelection={(value: any) => {
+          const selectedListWithoutIdAndValue = value.selectedList.map(
+            (selectedItem: ListItem) => {
+              const { _id, value, ...rest } = selectedItem;
+              return rest;
+            }
+          );
+      
+          setSelectedItems({
+            ...Itemsselected,
+            text: value.text,
+            selectedList: selectedListWithoutIdAndValue,
+            error: "",
+          });
         }}
+        selectedArrayList={
+          Itemsselected ? Itemsselected.selectedList : ([] as ListItem[])
+        }
+        multiEnable={true}
       />
       <View>
-        <Text>ราคารวมทั้งหมด: {calculateTotalPrice()}</Text>
         <TextInput
           placeholder="กรอกชื่อแพ๊คเกจ"
           value={Packagename.name}
