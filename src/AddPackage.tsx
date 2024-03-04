@@ -4,18 +4,11 @@ import { View, StyleSheet, Text, TextInput, Button } from "react-native";
 import { PaperSelect } from "react-native-paper-select";
 
 import Icon from "react-native-vector-icons/MaterialIcons";
-import {
-  collection,
-  setDoc,
-  onSnapshot,
-  doc,
-  addDoc,
-} from "firebase/firestore";
+import { collection, setDoc, onSnapshot, doc } from "firebase/firestore";
 import { db } from "../database/config";
 
 interface HealthCheck {
   id: any;
-
   name: string;
   nameeng: string;
   namecode: string;
@@ -35,6 +28,7 @@ interface SelectedItems {
 const AddPackage: React.FC<any> = ({ navigation }) => {
   const [firebaseData, setFirebaseData] = useState<HealthCheck[]>([]);
   const [Packagename, setPackageName] = useState<string>("");
+  const [totalPrice, setTotalPrice] = useState<number>(0);
   const [Itemsselected, setSelectedItems] = useState<SelectedItems | null>(
     null
   );
@@ -67,22 +61,11 @@ const AddPackage: React.FC<any> = ({ navigation }) => {
 
   const Submit = async () => {
     // Map the unique identifiers to the corresponding items in firebaseData
-
     console.log(Itemsselected);
-
-    
-    
-
     const packageData = {
       Packagename,
-      Totalprice: "2",
-      // Healthcheck: selectedItemsInfo.map((item) => ({
-      //   id: item?.id,
-      //   name: item?.name,
-      //   price: item?.price,
-      //   code: item?.code,
-      //   // Add more fields if needed
-      // })),
+      text: Itemsselected?.text,
+      Totalprice: totalPrice.toString(),
     };
     const PackageDocRef = doc(db, "HealthCheckPackage", Packagename);
     await setDoc(PackageDocRef, packageData);
@@ -106,7 +89,12 @@ const AddPackage: React.FC<any> = ({ navigation }) => {
               return rest;
             }
           );
-      
+          const newTotalPrice = selectedListWithoutIdAndValue.reduce(
+            (total, selectedItem) => total + selectedItem.price,
+            0
+          );
+          setTotalPrice(newTotalPrice);
+
           setSelectedItems({
             ...Itemsselected,
             text: value.text,
@@ -125,6 +113,7 @@ const AddPackage: React.FC<any> = ({ navigation }) => {
           value={Packagename.name}
           onChangeText={(newText) => setPackageName(newText)}
         />
+        <Text>{totalPrice}</Text>
       </View>
       <Button title="Submit" onPress={Submit} />
     </View>
