@@ -2,7 +2,7 @@ import { StyleSheet, View } from "react-native";
 import React, { useEffect, useState } from "react";
 import { DatePickerModal } from "react-native-paper-dates";
 import { Button, TextInput, Text } from "react-native-paper";
-import SectionedMultiSelect from "react-native-sectioned-multi-select";
+//import SectionedMultiSelect from "react-native-sectioned-multi-select";
 import Icon from "react-native-vector-icons/MaterialIcons";
 import {
   collection,
