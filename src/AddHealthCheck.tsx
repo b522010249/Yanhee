@@ -2,9 +2,10 @@ import { Keyboard, StyleSheet, View } from "react-native";
 import React, { useState } from "react";
 import { db } from "../database/config";
 import { collection, doc, setDoc } from "firebase/firestore";
-import { Button, TextInput } from "react-native-paper";
+import { Button, Checkbox, TextInput } from "react-native-paper";
 
 const AddHeatlhCheck: React.FC<any> = ({ navigation }) => {
+  const [checked, setChecked] = React.useState(false);
   const [HealthCheck, SetHealthCheck] = useState<{
     name: string;
     nameeng: string;
@@ -41,6 +42,8 @@ const AddHeatlhCheck: React.FC<any> = ({ navigation }) => {
           ResultsStatus: HealthCheck.ResultsStatus,
           CheckupStatus: HealthCheck.CheckupStatus,
           codename: param.name,
+          Results: "",
+          type: checked ? "blood check" : "",
         };
 
         // Ensure all properties are defined before setting the document data
@@ -105,6 +108,12 @@ const AddHeatlhCheck: React.FC<any> = ({ navigation }) => {
             amount_sticker: parseFloat(newText) || 0,
           })
         }
+      />
+      <Checkbox
+        status={checked ? "checked" : "unchecked"}
+        onPress={() => {
+          setChecked(!checked);
+        }}
       />
       <Button mode="outlined" onPress={handleAddInput}>
         Add Code
