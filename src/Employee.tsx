@@ -145,7 +145,7 @@ const Employee = () => {
                         "/" +
                         year +
                         "/" +
-                        healthCheck.namecode
+                        healthCheck.id
                       }
                       size={100}
                     />
