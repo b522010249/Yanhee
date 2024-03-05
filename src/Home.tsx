@@ -20,20 +20,25 @@ const Home: React.FC<any> = ({ navigation }) => {
     useScanDetection({
       onComplete: (code) => {
         const filteredCode = code.replace(/Alt0012/g, "").replace(/Shift/g, "");
-  
+
         console.log(filteredCode);
-  
+        if (isSwitchOn) {
+          console.log("it will naviage");
+          const [companyID, employeeID] = filteredCode.split("/");
+          navigation.navigate("Employee", { companyID, employeeID });
+        } else {
+          console.log("Hello");
+        }
+
         // Handle the filtered barcode, e.g., update state or trigger actions
-        const [companyID, employeeID] = filteredCode.split("/");
-        navigation.navigate("Employee", { companyID, employeeID });
-  
       },
     });
   }
-  
+
   return (
     <View style={styles.main}>
       <Switch value={isSwitchOn} onValueChange={onToggleSwitch} />
+      
       <ScrollView>
         <View style={styles.content}>
           <TouchableOpacity

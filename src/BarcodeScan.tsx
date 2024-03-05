@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet } from 'react-native';
 import { BarCodeScanner } from 'expo-barcode-scanner';
 
-const BarcodeScan: React.FC<any> = () => {
+const BarcodeScan: React.FC<any> = ({navigation}) => {
     const [hasPermission, setHasPermission] = useState(null);
     const [scanned, setScanned] = useState(false);
   
@@ -15,8 +15,12 @@ const BarcodeScan: React.FC<any> = () => {
   
     const handleBarCodeScanned = ({ type, data }) => {
         setScanned(true);
-        console.log(`Bar code with type ${type} and data ${data} has been scanned!`);
-    
+        console.log(data);
+        const filteredCode = data.replace(/Alt0012/g, "").replace(/Shift/g, "");
+
+        console.log(filteredCode);
+        const [companyID, employeeID] = filteredCode.split("/");
+        navigation.navigate("SearchScan", { companyID, employeeID });
         // Reset the scanned state after a delay (e.g., 2 seconds)
         setTimeout(() => {
           setScanned(false);
