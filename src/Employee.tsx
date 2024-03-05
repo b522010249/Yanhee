@@ -163,6 +163,7 @@ const Employee = () => {
                       {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
                     </Text>
                   ) : (
+                    
                     <Text style={{ ...styles.text, fontSize: 22 }}>{name}</Text>
                   )}
                 </View>
@@ -232,7 +233,7 @@ const Employee = () => {
                   {item.CheckupStatus.toString()}
                 </DataTable.Cell>
                 <DataTable.Cell numeric>
-                  {item.Resultsstatus.toString()}
+                  {item.ResultsStatus.toString()}
                 </DataTable.Cell>
               </DataTable.Row>
             ))}
