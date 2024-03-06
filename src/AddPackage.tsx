@@ -3,7 +3,6 @@ import { View, StyleSheet, Text, TextInput, Button } from "react-native";
 
 import { PaperSelect } from "react-native-paper-select";
 
-import Icon from "react-native-vector-icons/MaterialIcons";
 import { collection, setDoc, onSnapshot, doc } from "firebase/firestore";
 import { db } from "../database/config";
 
@@ -25,7 +24,8 @@ interface SelectedItems {
   selectedList: ListItem[];
   error: string;
 }
-const AddPackage: React.FC<any> = ({ navigation }) => {
+const AddPackage: React.FC<any> = (props: { companyId: any }) => {
+  const { companyId } = props;
   const [firebaseData, setFirebaseData] = useState<HealthCheck[]>([]);
   const [Packagename, setPackageName] = useState<string>("");
   const [totalPrice, setTotalPrice] = useState<number>(0);
@@ -67,7 +67,7 @@ const AddPackage: React.FC<any> = ({ navigation }) => {
       text: Itemsselected?.text,
       Totalprice: totalPrice.toString(),
     };
-    const PackageDocRef = doc(db, "HealthCheckPackage", Packagename);
+    const PackageDocRef = doc(db,"Company",companyId, "HealthCheckPackage", Packagename);
     await setDoc(PackageDocRef, packageData);
     const healthCheckCollectionRef = collection(PackageDocRef, "HealthCheck");
     for (const healthCheck of Itemsselected.selectedList) {

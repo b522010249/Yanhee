@@ -13,6 +13,7 @@ import { db } from "../database/config";
 import { Portal, Modal, Card, Text, TextInput, FAB } from "react-native-paper";
 import AddEmployee from "./AddEmployee";
 import DropDown from "react-native-paper-dropdown";
+import AddPackage from "./AddPackage";
 
 interface Employee {
   id: string;
@@ -32,6 +33,7 @@ const Company: React.FC<any> = ({ route }) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
   const navigation = useNavigation();
   const [visible, setVisible] = React.useState(false);
+  const [visible2, setVisible2] = React.useState(false);
   const [totalEmployees, setTotalEmployees] = useState<number>(0);
   const [employeeStatus, setEmployeeStatus] = useState<Record<string, string>>(
     {}
@@ -51,7 +53,10 @@ const Company: React.FC<any> = ({ route }) => {
   const { open } = state;
 
   const showModal = () => setVisible(true);
+  const showModal2 = () => setVisible2(true);
   const hideModal = () => setVisible(false);
+  const hideModal2 = () => setVisible2(false);
+
   const containerStyle = {
     backgroundColor: "rgba(255, 255, 255, 1)",
     padding: 20,
@@ -65,69 +70,69 @@ const Company: React.FC<any> = ({ route }) => {
         );
         setTotalEmployees(employeesData.length);
         setEmployees(employeesData);
-        employeesData.forEach(async (employee) => {
-          const historyId = "2024"; // Replace with the actual field name
+        // employeesData.forEach(async (employee) => {
+        //   const historyId = "2024"; // Replace with the actual field name
 
-          const historyRef = doc(
-            db,
-            "Company",
-            companyId,
-            "Employee",
-            employee["HN."],
-            "History",
-            "2024"
-          );
+        //   const historyRef = doc(
+        //     db,
+        //     "Company",
+        //     companyId,
+        //     "Employee",
+        //     employee["HN."],
+        //     "History",
+        //     "2024"
+        //   );
 
-          const healthChecksSnapshot = await getDocs(
-            collection(historyRef, "HealthCheck")
-          );
+        //   const healthChecksSnapshot = await getDocs(
+        //     collection(historyRef, "HealthCheck")
+        //   );
 
-          let isComplete = true;
-          let checkupStatusCount = 0;
-          let hasIncompleteResults = false;
-          let isOnGoing = false;
-          let isWaitingResults = false;
-          healthChecksSnapshot.forEach((healthCheckDoc) => {
-            const { Resultsstatus, CheckupStatus } = healthCheckDoc.data();
-            if (!CheckupStatus || !Resultsstatus) {
-              isComplete = false;
+        //   let isComplete = true;
+        //   let checkupStatusCount = 0;
+        //   let hasIncompleteResults = false;
+        //   let isOnGoing = false;
+        //   let isWaitingResults = false;
+        //   healthChecksSnapshot.forEach((healthCheckDoc) => {
+        //     const { Resultsstatus, CheckupStatus } = healthCheckDoc.data();
+        //     if (!CheckupStatus || !Resultsstatus) {
+        //       isComplete = false;
 
-              if (CheckupStatus && !Resultsstatus) {
-                hasIncompleteResults = true;
-              }
-            }
+        //       if (CheckupStatus && !Resultsstatus) {
+        //         hasIncompleteResults = true;
+        //       }
+        //     }
 
-            if (CheckupStatus) {
-              checkupStatusCount++;
-            }
-          });
+        //     if (CheckupStatus) {
+        //       checkupStatusCount++;
+        //     }
+        //   });
 
-          // Update the Historystatus field in the History document
-          let historyStatus = "Not Complete";
+        //   // Update the Historystatus field in the History document
+        //   let historyStatus = "Not Complete";
 
-          if (isComplete) {
-            historyStatus = "Complete";
-          } else if (
-            checkupStatusCount === healthChecksSnapshot.size &&
-            hasIncompleteResults
-          ) {
-            isWaitingResults = true;
-            historyStatus = "Waiting Results";
-          } else if (checkupStatusCount > 0) {
-            isOnGoing = true;
-            historyStatus = "On Going";
-          }
+        //   if (isComplete) {
+        //     historyStatus = "Complete";
+        //   } else if (
+        //     checkupStatusCount === healthChecksSnapshot.size &&
+        //     hasIncompleteResults
+        //   ) {
+        //     isWaitingResults = true;
+        //     historyStatus = "Waiting Results";
+        //   } else if (checkupStatusCount > 0) {
+        //     isOnGoing = true;
+        //     historyStatus = "On Going";
+        //   }
 
-          await updateDoc(historyRef, { status: historyStatus });
-          setEmployeeStatus((prevStatus) => ({
-            ...prevStatus,
-            [employee.id]: historyStatus,
-          }));
+        //   await updateDoc(historyRef, { status: historyStatus });
+        //   setEmployeeStatus((prevStatus) => ({
+        //     ...prevStatus,
+        //     [employee.id]: historyStatus,
+        //   }));
 
-          console.log(
-            `Updated History ${historyId} status to ${historyStatus}`
-          );
-        });
+        //   console.log(
+        //     `Updated History ${historyId} status to ${historyStatus}`
+        //   );
+        // });
       }
     );
 
@@ -152,6 +157,7 @@ const Company: React.FC<any> = ({ route }) => {
   employees.sort((a, b) => a.ลำดับ - b.ลำดับ);
   return (
     <View style={styles.container}>
+      
       <DropDown
         label={"Year"}
         visible={showDropDown}
@@ -228,6 +234,13 @@ const Company: React.FC<any> = ({ route }) => {
       >
         <AddEmployee companyId={companyId} />
       </Modal>
+      <Modal
+        visible={visible2}
+        onDismiss={hideModal2}
+        contentContainerStyle={containerStyle}
+      >
+        <AddPackage companyId={companyId} />
+      </Modal>
       <Portal>
         <FAB.Group
           open={open}
@@ -235,6 +248,7 @@ const Company: React.FC<any> = ({ route }) => {
           icon={open ? "plus-minus" : "plus"}
           actions={[
             { icon: "plus", onPress: showModal },
+            { icon: "package", onPress: showModal2 },
             {
               icon: "barcode-scan",
               label: "barcode-scan",

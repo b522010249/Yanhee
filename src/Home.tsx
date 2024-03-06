@@ -89,6 +89,13 @@ const Home: React.FC<any> = ({ navigation }) => {
           >
             <Text>เพิ่มเติม</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate("test")}
+          >
+            <Text>test</Text>
+          </TouchableOpacity>
+          
         </View>
       </ScrollView>
     </View>
