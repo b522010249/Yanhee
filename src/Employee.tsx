@@ -126,7 +126,7 @@ const Employee = () => {
 
   const ComponentToPrint = React.forwardRef(({ companyID }, ref) => {
     return (
-      <View ref={ref} style={styles.printPage}>
+      <View ref={ref}>
         {HealthCheckData.map((healthCheck, index) => {
           const { amount_sticker, name, type } = healthCheck;
 

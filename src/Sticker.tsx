@@ -1,148 +1,166 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Button, StyleSheet, View, Text, TouchableOpacity, TextInput } from 'react-native';
-import { useReactToPrint } from 'react-to-print';
-import { collection, doc, getDoc, onSnapshot } from 'firebase/firestore';
-import { db } from '../database/config';
-import QRCode from 'react-native-qrcode-svg';
+// Sticker.js
+import React, { useEffect, useRef, useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
+import QRCode from "react-native-qrcode-svg";
+import { db } from "../database/config";
+import { collection, doc, getDoc, getDocs, onSnapshot } from "firebase/firestore";
+import { useReactToPrint } from "react-to-print";
 
-const Employee = ({ route }) => {
-  const { employeeID, companyID } = route.params;
-  const [isPrintVisible, setIsPrintVisible] = useState(false);
+const Sticker = ({ employeeID, companyID }, ref) => {
   const componentRef = useRef(null);
+  const namepe = "ตรวจปัสสาวะ";
+  const year = "2024";
   const [employeeData, setEmployeeData] = useState({});
-  const [healthCheckData, setHealthCheckData] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [HealthCheckData, setHealthCheckData] = useState([]);
 
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        const employeeDocRef = doc(db, 'Company', companyID, 'Employee', employeeID);
+        const employeeDocRef = doc(db, "Company", companyID, "Employee", employeeID);
         const employeeDocSnapshot = await getDoc(employeeDocRef);
 
         if (employeeDocSnapshot.exists()) {
           const employeeData = employeeDocSnapshot.data();
           setEmployeeData(employeeData);
         } else {
-          console.log('Employee document does not exist.');
+          console.log("Employee document does not exist.");
         }
 
-        const HealthCheckCollection = collection(db, 'Company', companyID, 'Employee', employeeID, 'HealthCheck');
+        const HealthCheckCollection = collection(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID,
+          "History",
+          year,
+          "HealthCheck"
+        );
         const unsubscribe = onSnapshot(HealthCheckCollection, (snapshot) => {
-          const healthCheckData = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-          setHealthCheckData(healthCheckData);
-        });
+          const healthCheckData = snapshot.docs.map((doc) => ({
+            id: doc.id,
+            ...doc.data(),
+          }));
 
-        setLoading(false);
+          const bloodCheckData = healthCheckData.filter(
+            (entry) => entry.type === "blood check"
+          );
+          const otherCheckData = healthCheckData.filter(
+            (entry) => entry.type !== "blood check"
+          );
+
+          const firstBloodCheckEntry =
+            bloodCheckData.length > 0 ? [bloodCheckData[0]] : [];
+
+          const updatedHealthCheckData = [
+            ...firstBloodCheckEntry,
+            ...otherCheckData,
+          ];
+
+          setHealthCheckData(updatedHealthCheckData);
+          console.log(updatedHealthCheckData);
+        });
 
         return () => {
           unsubscribe();
         };
       } catch (error) {
-        console.error('Error fetching employee document:', error);
+        console.error("Error fetching employee document:", error);
       }
     };
 
     fetchDocument();
-  }, [companyID, employeeID]);
-
-  
-  const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+  }, [companyID, employeeID, year]);
+  useReactToPrint({
+    content: () => ref.current,
   });
-  const handleAmountStickerChange = (index, newValue) => {
-    const updatedHealthCheckData = [...healthCheckData];
-    updatedHealthCheckData[index].amount_sticker = newValue;
-    setHealthCheckData(updatedHealthCheckData);
-  };
-
-  const ComponentToPrint = React.forwardRef(({ companyID }, ref) => {
-    return (
-      <View ref={ref} style={styles.printPage}>
-        {healthCheckData.map((healthCheck, index) => {
-          const { amount_sticker, name } = healthCheck;
-          const stickerElements = Array.from({ length: amount_sticker }, (_, i) => (
-            <View key={i} style={styles.sticker}>
-              <View style={styles.leftContainer}>
-                <Text style={{...styles.text,fontSize:14}}>บริษัท: {companyID}</Text>
-                <Text style={styles.text}>ชื่อ: {employeeData['คำนำหน้า']} {employeeData['ชื่อจริง']} {employeeData['นามสกุล']}</Text>
-                <Text style={styles.text}>ลำดับที่: {employeeData['ลำดับ']}</Text>
-                <Text style={styles.text}>{name}</Text>
-              </View>
-              <View style={styles.rightContainer}>
-                <QRCode value={employeeData['HN.']} size={60} />
-              </View>
-            </View>
-          ));
-
-          return stickerElements;
-        })}
-      </View>
-    );
-  });
-
-  
-
   return (
-    <View>
-      {loading ? (
-        <Text>Loading...</Text>
-      ) : (
-        <>
-          <Button title="Print" onPress={handlePrint} />
-          {/* <Button title="Print Selected" onPress={handlePrintSelected} /> */}
+    <View ref={ref}>
+      {HealthCheckData.map((healthCheck, index) => {
+        const { amount_sticker, name, type } = healthCheck;
 
-          <div style={{ display: "none" }}><ComponentToPrint ref={componentRef} companyID={companyID} /></div>
-          {healthCheckData.map((HealthCheck, index) => (
-          <View style={{borderWidth:1,height:150}} key={index}>
-            <TouchableOpacity>
-              <Text>{HealthCheck.name}</Text>
-            </TouchableOpacity>
-            <TextInput
-                  placeholder="Enter amount_sticker"
-                  value={HealthCheck.amount_sticker.toString()}
-                  onChangeText={(newValue) => handleAmountStickerChange(index, newValue)}
-            />
+        const stickerElements = Array.from(
+          { length: amount_sticker },
+          (_, i) => (
+            <View key={i} style={styles.sticker}>
+              <View style={styles.topContainer}>
+                <View style={styles.leftContainer}>
+                  <Text style={styles.text}>
+                    ลำดับที่: {employeeData["ลำดับ"]}
+                  </Text>
+                  <Text style={{ ...styles.text, fontSize: 16 }}>
+                    {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
+                    {"\n"}
+                    {employeeData["นามสกุล"]}
+                  </Text>
+                </View>
+                <View style={styles.rightContainer}>
+                  <QRCode
+                    value={
+                      companyID +
+                      "/" +
+                      employeeData["HN."] +
+                      "/" +
+                      year +
+                      "/" +
+                      healthCheck.id
+                    }
+                    size={60}
+                  />
+                </View>
+              </View>
+              <View style={styles.bottomContainer}>
+                {type === "blood check" ? (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>
+                    ตรวจรายการเจาะเลือด
+                  </Text>
+                ) : healthCheck.id === "PE" ? (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>
+                    {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
+                  </Text>
+                ) : healthCheck.id === "UA" ? (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>
+                    {employeeData["HN."]} {namepe}
+                  </Text>
+                ) : (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
+                )}
+              </View>
             </View>
-          ))}
-        </>
-      )}
+          )
+        );
+
+        return stickerElements;
+      })}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   sticker: {
-    flex: 1,
-    pageBreakBefore: 'always',
-    alignContent: 'center',
-    flexWrap:'wrap',
-    flexDirection:'row',
-    marginLeft:15,
-    marginRight:15,
-    alignItems:'center',
-    
+    flexDirection: "column",
+    marginLeft: 15,
   },
   leftContainer: {
-    flex: 2.5,
-    height:122.3,
-    borderWidth:1,
+    flex: 1.5,
+    justifyContent: "center",
+    width: 150,
+    flexWrap: "wrap",
   },
   rightContainer: {
     flex: 1,
-    alignItems:'flex-end',
-    alignContent:'flex-start',
-    height:122.3,
+    alignItems: "flex-end",
   },
   text: {
-    fontSize: 12,
+    fontSize: 18,
   },
-  printPage: {
-    '@media print': {
-      '@page': {
-        size: '2in 1in',
-      },
-    },
+  topContainer: {
+    flex: 3,
+    flexDirection: "row",
+  },
+  bottomContainer: {
+    flex: 1,
   },
 });
 
-export default Employee;
+export default React.forwardRef(Sticker);
