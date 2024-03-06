@@ -18,6 +18,7 @@ import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import SearchScan from "./src/SearchScan";
 import test from "./src/test";
 import Sticker from "./src/Sticker";
+import Stickertest from "./src/Stickertest";
 
 export default function App() {
   const theme = {
@@ -102,6 +103,7 @@ export default function App() {
                 <Stack.Screen name="SearchScan" component={SearchScan} />
                 <Stack.Screen name="test" component={test} />
                 <Stack.Screen name="Sticker" component={Sticker} />
+                <Stack.Screen name="Stickertest" component={Stickertest} />
               </Stack.Navigator>
             </NavigationContainer>
           </View>

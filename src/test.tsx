@@ -40,10 +40,9 @@ const Test = () => {
       />
       <div ref={componentRef}>
         {employee.map((employee) => (
-          <Sticker
+          <Sticker  style={testStyles.test}
             employeeID={employee.id}
             companyID={companyId}
-            
           />
         ))}
       </div>
@@ -53,4 +52,8 @@ const Test = () => {
 
 export default Test;
 
-const testStyles = StyleSheet.create({});
+const testStyles = StyleSheet.create({
+  test:{
+    paddingTop:10,
+  }
+});

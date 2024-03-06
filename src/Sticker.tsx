@@ -95,7 +95,6 @@ const Sticker = ({ employeeID, companyID }, ref) => {
           { length: amount_sticker },
           (_, i) => (
             <View key={i} style={styles.sticker}>
-              <View style={styles.topContainer}>
                 <View style={styles.leftContainer}>
                   <Text style={styles.text}>
                     ลำดับที่: {employeeData["ลำดับ"]}
@@ -137,10 +136,6 @@ const Sticker = ({ employeeID, companyID }, ref) => {
                     size={60}
                   />
                 </View>
-              </View>
-              {/* <View style={styles.bottomContainer}>
-
-              </View> */}
             </View>
           )
         );
@@ -154,30 +149,29 @@ const Sticker = ({ employeeID, companyID }, ref) => {
 const styles = StyleSheet.create({
   sticker: {
     flexDirection: "column",
-    marginTop:10,
+    flex:1,
+    display:"flex",
     marginLeft: 15,
+    borderWidth: 1,
+    borderColor: 'black',
+    pageBreakAfter: 'always',
   },
   leftContainer: {
     flex: 1,
     display:"flex",
+    position:"relative",
+    paddingTop:10,
     justifyContent: "space-around",
 
   },
   rightContainer: {
 
     position:"absolute",
-    top: 0,
+    top: 10,
     right: -50,
   },
   text: {
     fontSize: 18,
-  },
-  topContainer: {
-    flex: 3,
-    flexDirection: "row",
-  },
-  bottomContainer: {
-    flex: 1,
   },
 });
 
