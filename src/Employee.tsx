@@ -16,7 +16,7 @@ import {
   onSnapshot,
 } from "firebase/firestore";
 import { useReactToPrint } from "react-to-print";
-import DropDown from "react-native-paper-dropdown";
+import DropDown from "react-native-paper-dropdown"; 
 import { useRoute } from "@react-navigation/native";
 import { DataTable, Text } from "react-native-paper";
 
@@ -24,6 +24,7 @@ const Employee = () => {
   const route = useRoute();
   const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
+  const namepe ="ตรวจปัสสาวะ"
   const [employeeData, setEmployeeData] = useState({});
   const [HealthCheckData, setHealthCheckData] = useState([]);
   const [HistoryData, setHistoryData] = useState([]);
@@ -84,15 +85,25 @@ const Employee = () => {
             id: doc.id,
             ...doc.data(),
           }));
-          const bloodCheckData = healthCheckData.filter((entry) => entry.type === "blood check");
-          const otherCheckData = healthCheckData.filter((entry) => entry.type !== "blood check");
-        
-          // Store only one entry for "blood check" type
-          const filteredBloodCheckData = bloodCheckData.length > 0 ? [bloodCheckData[0]] : [];
-        
-          // Concatenate the filtered "blood check" data with other types
-          const updatedHealthCheckData = [...filteredBloodCheckData, ...otherCheckData];
-        
+
+          // Separate entries based on the type
+          const bloodCheckData = healthCheckData.filter(
+            (entry) => entry.type === "blood check"
+          );
+          const otherCheckData = healthCheckData.filter(
+            (entry) => entry.type !== "blood check"
+          );
+
+          // Store only the first entry for "blood check" type
+          const firstBloodCheckEntry =
+            bloodCheckData.length > 0 ? [bloodCheckData[0]] : [];
+
+          // Concatenate the first "blood check" entry with other types
+          const updatedHealthCheckData = [
+            ...firstBloodCheckEntry,
+            ...otherCheckData,
+          ];
+
           // Set the state accordingly
           setHealthCheckData(updatedHealthCheckData);
           console.log(updatedHealthCheckData);
@@ -114,8 +125,6 @@ const Employee = () => {
   });
 
   const ComponentToPrint = React.forwardRef(({ companyID }, ref) => {
-
-
     return (
       <View ref={ref} style={styles.printPage}>
         {HealthCheckData.map((healthCheck, index) => {
@@ -130,7 +139,7 @@ const Employee = () => {
                     <Text style={styles.text}>
                       ลำดับที่: {employeeData["ลำดับ"]}
                     </Text>
-                    <Text style={styles.text}>
+                    <Text style={{ ...styles.text, fontSize: 16 }}>
                       {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
                       {"\n"}
                       {employeeData["นามสกุล"]}
@@ -147,24 +156,27 @@ const Employee = () => {
                         "/" +
                         healthCheck.id
                       }
-                      size={100}
+                      size={60}
                     />
                   </View>
                 </View>
                 <View style={styles.bottomContainer}>
                   {type === "blood check" ? (
-                      <Text style={{ ...styles.text, fontSize: 22 }}>
-                        ตรวจรายการเจาะเลือด
-                      </Text>
-
+                    <Text style={{ ...styles.text, fontSize: 16 }}>
+                      ตรวจรายการเจาะเลือด
+                    </Text>
                   ) : // Render content based on the existing condition
-                  healthCheck.namecode === "PE" ? (
-                    <Text style={{ ...styles.text, fontSize: 22 }}>
+                  healthCheck.id === "PE" ? (
+                    <Text style={{ ...styles.text, fontSize: 16 }}>
                       {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
                     </Text>
+                  ) :
+                  healthCheck.id === "UA" ? (
+                    <Text style={{ ...styles.text, fontSize: 16 }}>
+                      {employeeData["HN."]} {namepe}
+                    </Text>
                   ) : (
-                    
-                    <Text style={{ ...styles.text, fontSize: 22 }}>{name}</Text>
+                    <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
                   )}
                 </View>
               </View>
@@ -275,14 +287,15 @@ const styles = StyleSheet.create({
   leftContainer: {
     flex: 1.5,
     justifyContent: "center",
+    width:150,
     flexWrap: "wrap",
   },
   rightContainer: {
     flex: 1,
-    justifyContent: "center",
+    alignItems:'flex-end',
   },
   text: {
-    fontSize: 22,
+    fontSize: 18,
   },
   topContainer: {
     flex: 3,

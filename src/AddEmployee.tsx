@@ -48,7 +48,7 @@ const AddEmployee = (props: { companyId: any }) => {
         // Convert sheet data to JSON
         const jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName], {
           raw: false,
-          dateNF: "YYYY-MM-DDTHH:mm:ss.SSSZ", // Format for parsing dates
+          dateNF: "dd/mmyyy", // Format for parsing dates
         }) as Employee[];
 
         // Convert date serial numbers to JavaScript Date objects
@@ -74,26 +74,31 @@ const AddEmployee = (props: { companyId: any }) => {
           );
 
           const workbook = XLSX.read(binaryString, { type: "binary" });
-          const sheetName = workbook.SheetNames[1];
+          const sheetName = workbook.SheetNames[0];
 
           // Convert sheet data to JSON
           const jsonData = XLSX.utils.sheet_to_json(
             workbook.Sheets[sheetName],
             {
               raw: false,
-              dateNF: "YYYY-MM-DDTHH:mm:ss.SSSZ", // Format for parsing dates
+              cellDates: true, // Enable date parsing
+              dateNF: "dd/mm/yyyy", // Format for parsing dates
             }
-          ) as Employee[];
-
-          // Convert date serial numbers to JavaScript Date objects
-          jsonData.forEach((employee) => {
-            if (employee.date) {
-              employee.date = XLSX.utils.dateNum(employee.date);
-            }
+          );
+          const formattedData = jsonData.map((row) => {
+            return Object.fromEntries(
+              Object.entries(row).map(([key, value]) => {
+                if (value instanceof Date) {
+                  // Format date as text, you can use any format you prefer
+                  return [key, value.toLocaleDateString()];
+                }
+                return [key, value];
+              })
+            );
           });
 
-          // Set the converted data in state
-          setConvertedData(jsonData);
+          setConvertedData(formattedData);
+          console.log(formattedData)
           console.log("Data picked");
 
           // Continue with the rest of your code to process the workbook
@@ -129,6 +134,8 @@ const AddEmployee = (props: { companyId: any }) => {
           "Employee"
         );
         const customEmployeeName = employee["HN."];
+
+
         const EmployeeDocRef = doc(EmployeeCollectionRef, customEmployeeName);
 
         try {
@@ -159,6 +166,8 @@ const AddEmployee = (props: { companyId: any }) => {
           );
           const healthCheckPackageRef = doc(
             db,
+            "Company",
+            companyId,
             "HealthCheckPackage",
             employee["P."]
           );
