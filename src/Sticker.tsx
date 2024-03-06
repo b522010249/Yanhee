@@ -3,7 +3,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { db } from "../database/config";
-import { collection, doc, getDoc, getDocs, onSnapshot } from "firebase/firestore";
+import {
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  onSnapshot,
+} from "firebase/firestore";
 import { useReactToPrint } from "react-to-print";
 
 const Sticker = ({ employeeID, companyID }, ref) => {
@@ -16,7 +22,13 @@ const Sticker = ({ employeeID, companyID }, ref) => {
   useEffect(() => {
     const fetchDocument = async () => {
       try {
-        const employeeDocRef = doc(db, "Company", companyID, "Employee", employeeID);
+        const employeeDocRef = doc(
+          db,
+          "Company",
+          companyID,
+          "Employee",
+          employeeID
+        );
         const employeeDocSnapshot = await getDoc(employeeDocRef);
 
         if (employeeDocSnapshot.exists()) {
@@ -93,6 +105,23 @@ const Sticker = ({ employeeID, companyID }, ref) => {
                     {"\n"}
                     {employeeData["นามสกุล"]}
                   </Text>
+                  <>
+                  {type === "blood check" ? (
+                    <Text style={{ ...styles.text, fontSize: 16 }}>
+                      ตรวจรายการเจาะเลือด
+                    </Text>
+                  ) : healthCheck.id === "PE" ? (
+                    <Text style={{ ...styles.text, fontSize: 16 }}>
+                      {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
+                    </Text>
+                  ) : healthCheck.id === "UA" ? (
+                    <Text style={{ ...styles.text, fontSize: 16 }}>
+                      {employeeData["HN."]} {namepe}
+                    </Text>
+                  ) : (
+                    <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
+                  )}
+                </>
                 </View>
                 <View style={styles.rightContainer}>
                   <QRCode
@@ -109,23 +138,9 @@ const Sticker = ({ employeeID, companyID }, ref) => {
                   />
                 </View>
               </View>
-              <View style={styles.bottomContainer}>
-                {type === "blood check" ? (
-                  <Text style={{ ...styles.text, fontSize: 16 }}>
-                    ตรวจรายการเจาะเลือด
-                  </Text>
-                ) : healthCheck.id === "PE" ? (
-                  <Text style={{ ...styles.text, fontSize: 16 }}>
-                    {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
-                  </Text>
-                ) : healthCheck.id === "UA" ? (
-                  <Text style={{ ...styles.text, fontSize: 16 }}>
-                    {employeeData["HN."]} {namepe}
-                  </Text>
-                ) : (
-                  <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
-                )}
-              </View>
+              {/* <View style={styles.bottomContainer}>
+
+              </View> */}
             </View>
           )
         );
@@ -139,17 +154,20 @@ const Sticker = ({ employeeID, companyID }, ref) => {
 const styles = StyleSheet.create({
   sticker: {
     flexDirection: "column",
+    marginTop:10,
     marginLeft: 15,
   },
   leftContainer: {
-    flex: 1.5,
-    justifyContent: "center",
-    width: 150,
-    flexWrap: "wrap",
+    flex: 1,
+    display:"flex",
+    justifyContent: "space-around",
+
   },
   rightContainer: {
-    flex: 1,
-    alignItems: "flex-end",
+
+    position:"absolute",
+    top: 0,
+    right: -50,
   },
   text: {
     fontSize: 18,
