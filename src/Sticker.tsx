@@ -13,7 +13,7 @@ import {
 import { useReactToPrint } from "react-to-print";
 
 const Sticker = ({ employeeID, companyID }, ref) => {
-  const componentRef = useRef(null);
+
   const namepe = "ตรวจปัสสาวะ";
   const year = "2024";
   const [employeeData, setEmployeeData] = useState({});
@@ -86,63 +86,64 @@ const Sticker = ({ employeeID, companyID }, ref) => {
   useReactToPrint({
     content: () => ref.current,
   });
+  const sortedHealthCheckData = HealthCheckData.sort((a, b) => {
+    return a.id === "PE" ? -1 : b.id === "PE" ? 1 : 0;
+  });
   return (
     <View ref={ref}>
-      {HealthCheckData.map((healthCheck, index) => {
-        const { amount_sticker, name, type } = healthCheck;
+    {sortedHealthCheckData.map((healthCheck, index) => {
+      const { amount_sticker, name, type } = healthCheck;
 
-        const stickerElements = Array.from(
-          { length: amount_sticker },
-          (_, i) => (
-            <View key={i} style={styles.sticker}>
-                <View style={styles.leftContainer}>
-                  <Text style={styles.text}>
-                    ลำดับที่: {employeeData["ลำดับ"]}
-                  </Text>
-                  <Text style={{ ...styles.text, fontSize: 16 }}>
-                    {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
-                    {"\n"}
-                    {employeeData["นามสกุล"]}
-                  </Text>
-                  <>
-                  {type === "blood check" ? (
-                    <Text style={{ ...styles.text, fontSize: 16 }}>
-                      ตรวจรายการเจาะเลือด
-                    </Text>
-                  ) : healthCheck.id === "PE" ? (
-                    <Text style={{ ...styles.text, fontSize: 16 }}>
-                      {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
-                    </Text>
-                  ) : healthCheck.id === "UA" ? (
-                    <Text style={{ ...styles.text, fontSize: 16 }}>
-                      {employeeData["HN."]} {namepe}
-                    </Text>
-                  ) : (
-                    <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
-                  )}
-                </>
-                </View>
-                <View style={styles.rightContainer}>
-                  <QRCode
-                    value={
-                      companyID +
-                      "/" +
-                      employeeData["HN."] +
-                      "/" +
-                      year +
-                      "/" +
-                      healthCheck.id
-                    }
-                    size={60}
-                  />
-                </View>
-            </View>
-          )
-        );
+      const stickerElements = Array.from({ length: amount_sticker }, (_, i) => (
+        <View key={i} style={styles.sticker}>
+          <View style={styles.leftContainer}>
+            <Text style={styles.text}>
+              ลำดับที่: {employeeData["ลำดับ"]}
+            </Text>
+            <Text style={{ ...styles.text, fontSize: 16 }}>
+              {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
+              {"\n"}
+              {employeeData["นามสกุล"]}
+            </Text>
+            <>
+              {type === "blood check" ? (
+                <Text style={{ ...styles.text, fontSize: 16 }}>
+                  ตรวจรายการเจาะเลือด
+                </Text>
+              ) : healthCheck.id === "PE" ? (
+                <Text style={{ ...styles.text, fontSize: 16 }}>
+                  {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
+                </Text>
+              ) : healthCheck.id === "UA" ? (
+                <Text style={{ ...styles.text, fontSize: 16 }}>
+                  {employeeData["HN."]} {namepe}
+                </Text>
+              ) : (
+                <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
+              )}
+            </>
+          </View>
+          <View style={styles.rightContainer}>
+            <QRCode
+              value={
+                companyID +
+                "/" +
+                employeeData["HN."] +
+                "/" +
+                year +
+                "/" +
+                healthCheck.id
+              }
+              size={60}
+            />
+          </View>
+        </View>
+      ));
 
-        return stickerElements;
-      })}
-    </View>
+      return stickerElements;
+    })}
+  </View>
+
   );
 };
 
@@ -152,23 +153,21 @@ const styles = StyleSheet.create({
     flex:1,
     display:"flex",
     marginLeft: 15,
-    borderWidth: 1,
-    borderColor: 'black',
+
     pageBreakAfter: 'always',
   },
   leftContainer: {
     flex: 1,
     display:"flex",
     position:"relative",
-    paddingTop:10,
-    justifyContent: "space-around",
+    justifyContent: "space-between",
 
   },
   rightContainer: {
 
     position:"absolute",
-    top: 10,
-    right: -50,
+    top: 0,
+    right: -20,
   },
   text: {
     fontSize: 18,

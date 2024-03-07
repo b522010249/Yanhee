@@ -74,7 +74,7 @@ const AddEmployee = (props: { companyId: any }) => {
           );
 
           const workbook = XLSX.read(binaryString, { type: "binary" });
-          const sheetName = workbook.SheetNames[0];
+          const sheetName = workbook.SheetNames[1];
 
           // Convert sheet data to JSON
           const jsonData = XLSX.utils.sheet_to_json(

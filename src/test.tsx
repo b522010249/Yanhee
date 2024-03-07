@@ -8,7 +8,7 @@ import ReactToPrint, { useReactToPrint } from "react-to-print";
 
 const Test = () => {
   const [employee, setEmployee] = useState([]);
-  const companyId = "Energy Co.";
+  const companyId = "SaengJun";
   const componentRef = useRef(null);
   useEffect(() => {
     const unsubscribe = onSnapshot(
@@ -39,12 +39,16 @@ const Test = () => {
         content={() => componentRef.current}
       />
       <div ref={componentRef}>
-        {employee.map((employee) => (
-          <Sticker  style={testStyles.test}
-            employeeID={employee.id}
-            companyID={companyId}
-          />
-        ))}
+      {employee
+  .slice() // Create a copy to avoid mutating the original array
+  .sort((a, b) => b["ลำดับ"] - a["ลำดับ"]) // Sort employees based on the "ลำดับ" property
+  .map((employee) => (
+    <Sticker
+      key={employee.id} // Make sure to provide a unique key for each sticker
+      employeeID={employee.id}
+      companyID={companyId}
+    />
+  ))}
       </div>
     </View>
   );
@@ -54,6 +58,6 @@ export default Test;
 
 const testStyles = StyleSheet.create({
   test:{
-    paddingTop:10,
+
   }
 });
