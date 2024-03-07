@@ -2,7 +2,7 @@ import { View, StyleSheet, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import React from "react";
+import React, { useEffect, useState } from "react";
 //navigate path
 import Homescreen from "./src/Home";
 import AddCompany from "./src/AddCompany";
@@ -19,6 +19,7 @@ import SearchScan from "./src/SearchScan";
 import test from "./src/test";
 import Sticker from "./src/Sticker";
 import Stickertest from "./src/Stickertest";
+import Login from "./src/Login";
 
 export default function App() {
   const theme = {
@@ -58,16 +59,15 @@ export default function App() {
         level2: "rgb(231, 241, 236)",
         level3: "rgb(223, 237, 231)",
         level4: "rgb(221, 236, 229)",
-        level5: "rgb(216, 233, 226)"
+        level5: "rgb(216, 233, 226)",
       },
       surfaceDisabled: "rgba(25, 28, 26, 0.12)",
       onSurfaceDisabled: "rgba(25, 28, 26, 0.38)",
-      backdrop: "rgba(41, 50, 46, 0.4)"
-    }
+      backdrop: "rgba(41, 50, 46, 0.4)",
+    },
   };
-  
+
   // You can use 'theme' as needed in your application
-  
 
   const Stack = createNativeStackNavigator();
 
@@ -84,6 +84,7 @@ export default function App() {
           <View style={styles.Body}>
             <NavigationContainer>
               <Stack.Navigator screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="Login" component={Login} />
                 <Stack.Screen name="Home" component={Homescreen} />
                 <Stack.Screen name="AddCompany" component={AddCompany} />
                 <Stack.Screen
