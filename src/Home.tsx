@@ -95,6 +95,13 @@ const Home: React.FC<any> = ({ navigation }) => {
           >
             <Text>test</Text>
           </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate("Stickertest")}
+          >
+            <Text>Stickertest</Text>
+          </TouchableOpacity>
+          
           
         </View>
       </ScrollView>
