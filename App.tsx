@@ -9,7 +9,7 @@ import AddCompany from "./src/AddCompany";
 import CompanyListScreen from "./src/CompanyListScreen";
 import AddPackage from "./src/AddPackage";
 import AddHeatlhCheck from "./src/AddHealthCheck";
-import BarcodeScan from "./src/BarcodeScan";
+import Scan from "./src/Scan";
 import Company from "./src/Company";
 import HealthCheck from "./src/HealthCheck";
 import Employee from "./src/Employee";
@@ -97,13 +97,13 @@ export default function App() {
                   name="AddHeatlhCheck"
                   component={AddHeatlhCheck}
                 />
-                <Stack.Screen name="BarcodeScan" component={BarcodeScan} />
+                <Stack.Screen name="Scan" component={Scan} />
                 <Stack.Screen name="HealthCheck" component={HealthCheck} />
                 <Stack.Screen name="Employee" component={Employee} />
                 <Stack.Screen name="AddExtra" component={AddExtra} />
                 <Stack.Screen name="SearchScan" component={SearchScan} />
                 <Stack.Screen name="test" component={test} />
-                <Stack.Screen name="Sticker" component={Sticker} />
+      
                 <Stack.Screen name="Stickertest" component={Stickertest} />
               </Stack.Navigator>
             </NavigationContainer>
