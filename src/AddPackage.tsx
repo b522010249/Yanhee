@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, StyleSheet, Text, TextInput, Button } from "react-native";
+import { View, StyleSheet } from "react-native";
 
 import { PaperSelect } from "react-native-paper-select";
 
 import { collection, setDoc, onSnapshot, doc } from "firebase/firestore";
 import { db } from "../database/config";
+import { Button, TextInput ,Text} from "react-native-paper";
 
 interface HealthCheck {
   id: any;
@@ -115,7 +116,7 @@ const AddPackage: React.FC<any> = (props: { companyId: any }) => {
         />
         <Text>{totalPrice}</Text>
       </View>
-      <Button title="Submit" onPress={Submit} />
+      <Button onPress={Submit} >Submit</Button>
     </View>
   );
 };
