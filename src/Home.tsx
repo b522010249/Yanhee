@@ -73,7 +73,7 @@ const Home: React.FC<any> = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate("BarcodeScan")}
+            onPress={() => navigation.navigate("Scan")}
           >
             <Text>แสกน</Text>
           </TouchableOpacity>
