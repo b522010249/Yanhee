@@ -97,7 +97,7 @@ const Home: React.FC<any> = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate("Stickertest")}
+            onPress={() => navigation.navigate("AddSingleEmployee")}
           >
             <Text>Stickertest</Text>
           </TouchableOpacity>

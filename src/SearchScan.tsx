@@ -6,6 +6,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   updateDoc,
 } from "firebase/firestore";
 
@@ -28,7 +29,6 @@ const SearchScan: React.FC = ({ route, navigation }) => {
         const fullName = `${employeeData["คำนำหน้า"]}${employeeData["ชื่อจริง"]} ${employeeData["นามสกุล"]}`;
         setEmployeeName(fullName);
       }
-      
 
       // Fetch health check name and update CheckupStatus
       const healthCheckDocRef = doc(
@@ -45,6 +45,32 @@ const SearchScan: React.FC = ({ route, navigation }) => {
         await updateDoc(healthCheckDocRef, {
           CheckupStatus: true,
         });
+
+        // If healthCheckid.type is "blood check", update CheckupStatus for all health checks with the same type
+        if (healthCheckData.type === "blood check") {
+          const bloodCheckCollectionRef = collection(
+            db,
+            `Company/${companyID}/Employee/${employeeID}/History/${year}/HealthCheck`
+          );
+
+          const bloodCheckQuerySnapshot = await getDocs(bloodCheckCollectionRef);
+
+          const updatePromises = [];
+
+          bloodCheckQuerySnapshot.forEach((bloodCheckDoc) => {
+            const bloodCheckData = bloodCheckDoc.data();
+            if (bloodCheckData.type === "blood check" && healthCheckid !== bloodCheckDoc.id) {
+              updatePromises.push(
+                updateDoc(bloodCheckDoc.ref, {
+                  CheckupStatus: true,
+                })
+              );
+            }
+          });
+
+          // Wait for all updates to complete
+          await Promise.all(updatePromises);
+        }
       }
     };
 
@@ -54,7 +80,7 @@ const SearchScan: React.FC = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <Text variant="titleLarge">การสแกนการตรวจสุขภาพเสร็จสมบูรณ์</Text>
-      
+
       <View style={{ alignItems: "center" }}>
         <Text variant="titleMedium">ชื่อจริง {employeeName}</Text>
         <Text variant="titleMedium">ตรวจ {healthCheckName}</Text>
@@ -64,7 +90,7 @@ const SearchScan: React.FC = ({ route, navigation }) => {
       <Button
         style={{ width: "100%" }}
         mode="contained"
-        onPress={() => navigation.navigate("Scan")}
+        onPress={() => navigation.goBack()}
       >
         เสร็จสิ้น
       </Button>

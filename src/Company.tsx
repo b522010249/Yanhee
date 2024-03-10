@@ -7,13 +7,16 @@ import {
   doc,
   getDocs,
   onSnapshot,
+  query,
   updateDoc,
+  where,
 } from "firebase/firestore";
 import { db } from "../database/config";
 import { Portal, Modal, Card, Text, TextInput, FAB } from "react-native-paper";
 import AddEmployee from "./AddEmployee";
 import DropDown from "react-native-paper-dropdown";
 import AddPackage from "./AddPackage";
+import AddSingleEmployee from "./AddSingleEmployee";
 
 interface Employee {
   id: string;
@@ -28,16 +31,128 @@ interface Employee {
   สถานะ: boolean;
 }
 
+const countHealthChecks = async (
+  companyId: string,
+  historyId: string
+): Promise<{
+  healthCheckCounts: HealthCheckCount[];
+  totalCounts: { [key: string]: number };
+}> => {
+  const employeesCollectionRef = collection(
+    db,
+    `Company/${companyId}/Employee`
+  );
+
+  const employeesSnapshot = await getDocs(employeesCollectionRef);
+
+  const promises: Promise<HealthCheckCount>[] = [];
+
+  employeesSnapshot.docs.forEach((employeeDoc) => {
+    const employeeId = employeeDoc.id;
+    const employeeName = employeeDoc.data().ชื่อจริง; // Replace "ชื่อจริง" with the actual field name for employee name
+    const order = employeeDoc.data().ลำดับ;
+    const healthCheckCollectionRef = collection(
+      db,
+      `Company/${companyId}/Employee/${employeeId}/History/${historyId}/HealthCheck`
+    );
+
+    promises.push(
+      (async () => {
+        const querySnapshot = await getDocs(
+          query(healthCheckCollectionRef, where("CheckupStatus", "==", true))
+        );
+
+        let countBloodCheck = 0;
+        let countPE = 0;
+        let countEKG = 0;
+        let countCXR = 0;
+        let countUA = 0;
+
+        const bloodCheckTypes = new Set<string>();
+
+        querySnapshot.docs.forEach((doc) => {
+          const id = doc.data().id;
+          switch (id) {
+            case "PE":
+              countPE++;
+              break;
+            case "EKG":
+              countEKG++;
+              break;
+            case "CXR":
+              countCXR++;
+              break;
+            case "UA":
+              countUA++;
+              break;
+            default:
+              // Assuming any other ID represents "blood check"
+              if (!bloodCheckTypes.has("blood check")) {
+                countBloodCheck++;
+                bloodCheckTypes.add("blood check");
+              }
+              break;
+          }
+        });
+
+        return {
+          employeeId,
+          employeeName,
+          order,
+          countBloodCheck,
+          countPE,
+          countEKG,
+          countCXR,
+          countUA,
+        };
+      })()
+    );
+  });
+
+  const countPerEmployee = await Promise.all(promises);
+
+  // Calculate total counts
+  const totals = countPerEmployee.reduce(
+    (acc, counts) => {
+      acc.countBloodCheck += counts.countBloodCheck;
+      acc.countPE += counts.countPE;
+      acc.countEKG += counts.countEKG;
+      acc.countCXR += counts.countCXR;
+      acc.countUA += counts.countUA;
+      return acc;
+    },
+    { countBloodCheck: 0, countPE: 0, countEKG: 0, countCXR: 0, countUA: 0 }
+  );
+
+  return { healthCheckCounts: countPerEmployee, totalCounts: totals };
+};
+interface HealthCheckCount {
+  employeeId: string;
+  employeeName: string;
+  order: number;
+  countBloodCheck: number;
+  countPE: number;
+  countEKG: number;
+  countCXR: number;
+  countUA: number;
+}
 const Company: React.FC<any> = ({ route }) => {
   const { companyId } = route.params;
-  const [employees, setEmployees] = useState<Employee[]>([]);
   const navigation = useNavigation();
   const [visible, setVisible] = React.useState(false);
   const [visible2, setVisible2] = React.useState(false);
-  const [totalEmployees, setTotalEmployees] = useState<number>(0);
-  const [employeeStatus, setEmployeeStatus] = useState<Record<string, string>>(
-    {}
-  );
+  const [visible3, setVisible3] = React.useState(false);
+  const [healthCheckCounts, setHealthCheckCounts] = useState<
+    HealthCheckCount[]
+  >([]);
+  const [totalCounts, setTotalCounts] = useState<{ [key: string]: number }>({
+    countBloodCheck: 0,
+    countPE: 0,
+    countEKG: 0,
+    countCXR: 0,
+    countUA: 0,
+  });
+
   const [year, setyear] = useState(new Date().getFullYear().toString());
   const [showDropDown, setShowDropDown] = useState(false);
   const years = [
@@ -54,110 +169,45 @@ const Company: React.FC<any> = ({ route }) => {
 
   const showModal = () => setVisible(true);
   const showModal2 = () => setVisible2(true);
+  const showModal3 = () => setVisible3(true);
   const hideModal = () => setVisible(false);
   const hideModal2 = () => setVisible2(false);
+  const hideModal3 = () => setVisible3(false);
 
   const containerStyle = {
     backgroundColor: "rgba(255, 255, 255, 1)",
     padding: 20,
   };
   useEffect(() => {
-    const unsubscribe = onSnapshot(
-      collection(db, "Company", companyId, "Employee"),
-      (snapshot) => {
-        const employeesData = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() } as Employee)
-        );
-        setTotalEmployees(employeesData.length);
-        setEmployees(employeesData);
-        // employeesData.forEach(async (employee) => {
-        //   const historyId = "2024"; // Replace with the actual field name
+    const fetchData = async () => {
+      const { healthCheckCounts, totalCounts } = await countHealthChecks(
+        companyId,
+        "2024"
+      );
+      setHealthCheckCounts(healthCheckCounts);
+      setTotalCounts(totalCounts);
+    };
 
-        //   const historyRef = doc(
-        //     db,
-        //     "Company",
-        //     companyId,
-        //     "Employee",
-        //     employee["HN."],
-        //     "History",
-        //     "2024"
-        //   );
-
-        //   const healthChecksSnapshot = await getDocs(
-        //     collection(historyRef, "HealthCheck")
-        //   );
-
-        //   let isComplete = true;
-        //   let checkupStatusCount = 0;
-        //   let hasIncompleteResults = false;
-        //   let isOnGoing = false;
-        //   let isWaitingResults = false;
-        //   healthChecksSnapshot.forEach((healthCheckDoc) => {
-        //     const { Resultsstatus, CheckupStatus } = healthCheckDoc.data();
-        //     if (!CheckupStatus || !Resultsstatus) {
-        //       isComplete = false;
-
-        //       if (CheckupStatus && !Resultsstatus) {
-        //         hasIncompleteResults = true;
-        //       }
-        //     }
-
-        //     if (CheckupStatus) {
-        //       checkupStatusCount++;
-        //     }
-        //   });
-
-        //   // Update the Historystatus field in the History document
-        //   let historyStatus = "Not Complete";
-
-        //   if (isComplete) {
-        //     historyStatus = "Complete";
-        //   } else if (
-        //     checkupStatusCount === healthChecksSnapshot.size &&
-        //     hasIncompleteResults
-        //   ) {
-        //     isWaitingResults = true;
-        //     historyStatus = "Waiting Results";
-        //   } else if (checkupStatusCount > 0) {
-        //     isOnGoing = true;
-        //     historyStatus = "On Going";
-        //   }
-
-        //   await updateDoc(historyRef, { status: historyStatus });
-        //   setEmployeeStatus((prevStatus) => ({
-        //     ...prevStatus,
-        //     [employee.id]: historyStatus,
-        //   }));
-
-        //   console.log(
-        //     `Updated History ${historyId} status to ${historyStatus}`
-        //   );
-        // });
-      }
-    );
-
-    return () => unsubscribe(); // Cleanup on component unmount
-  }, [companyId]);
+    fetchData();
+  }, []);
   const handleCompanyPress = (employeeID: string, companyID: string) => {
     navigation.navigate("Employee", { employeeID, companyID });
   };
-  const notCompleteCount = Object.values(employeeStatus).filter(
-    (status) => status === "Not Complete"
-  ).length;
-  const onGoingCount = Object.values(employeeStatus).filter(
-    (status) => status === "On Going"
-  ).length;
-  const CompleteCount = Object.values(employeeStatus).filter(
-    (status) => status === "Complete"
-  ).length;
-  const WaitingCount = Object.values(employeeStatus).filter(
-    (status) => status === "Waiting Results"
-  ).length;
+  // const notCompleteCount = Object.values(employeeStatus).filter(
+  //   (status) => status === "Not Complete"
+  // ).length;
+  // const onGoingCount = Object.values(employeeStatus).filter(
+  //   (status) => status === "On Going"
+  // ).length;
+  // const CompleteCount = Object.values(employeeStatus).filter(
+  //   (status) => status === "Complete"
+  // ).length;
+  // const WaitingCount = Object.values(employeeStatus).filter(
+  //   (status) => status === "Waiting Results"
+  // ).length;
 
-  employees.sort((a, b) => a.ลำดับ - b.ลำดับ);
   return (
     <View style={styles.container}>
-      
       <DropDown
         label={"Year"}
         visible={showDropDown}
@@ -174,7 +224,7 @@ const Company: React.FC<any> = ({ route }) => {
           justifyContent: "center",
         }}
       >
-        <Card>
+        {/* <Card>
           <Card.Content>
             <Text variant="titleLarge">จำนวนคนทั้งหมด:{totalEmployees}</Text>
           </Card.Content>
@@ -201,30 +251,44 @@ const Company: React.FC<any> = ({ route }) => {
           <Card.Content>
             <Text variant="titleLarge">ตรวจเสร็จสิ้น :{CompleteCount}</Text>
           </Card.Content>
-        </Card>
+        </Card> */}
       </View>
       <TextInput label="Search" />
       <ScrollView style={{ height: "100%", width: "100%" }}>
         <View style={styles.container2}>
-          {employees.map((employee) => (
-            <TouchableOpacity
-              key={employee.ชื่อจริง}
-              onPress={() => handleCompanyPress(employee.id, companyId)}
-            >
-              <Card style={{ height: 200, width: 300 }}>
-                <Card.Content>
-                  <Text variant="titleLarge">ลำดับ: {employee.ลำดับ}</Text>
-                  <Text variant="titleLarge">
-                    ชื่อ: {employee.ชื่อจริง} {employee.นามสกุล}
-                  </Text>
-                  <Text variant="titleLarge">P: {employee["P."]}</Text>
-                  <Text variant="titleLarge">
-                    สถานะ:{employeeStatus[employee.id]}
-                  </Text>
-                </Card.Content>
-              </Card>
-            </TouchableOpacity>
-          ))}
+          {healthCheckCounts
+            .sort((a, b) => a.order - b.order)
+            .map(
+              ({
+                employeeId,
+                employeeName,
+                order,
+                countBloodCheck,
+                countPE,
+                countEKG,
+                countCXR,
+                countUA,
+              }) => (
+                <TouchableOpacity
+                  key={employeeId}
+                  onPress={() => handleCompanyPress(employeeId, companyId)}
+                >
+                  <Card style={{ height: 200, width: 300 }}>
+                    <Card.Content>
+                      <Text variant="titleLarge">ลำดับ: {order}</Text>
+                      <Text variant="titleLarge">ชื่อ: {employeeName}</Text>
+                      <Text variant="titleLarge">
+                        ตรวจเจาะเลือด: {countBloodCheck}
+                      </Text>
+                      <Text variant="titleLarge">ตรวจโดยแพทย์: {countPE}</Text>
+                      <Text variant="titleLarge">ตรวจxray: {countEKG}</Text>
+                      <Text variant="titleLarge">ตรวจหัวใจ: {countCXR}</Text>
+                      <Text variant="titleLarge">ตรวจปัสสาวะ: {countUA}</Text>
+                    </Card.Content>
+                  </Card>
+                </TouchableOpacity>
+              )
+            )}
         </View>
       </ScrollView>
       <Modal
@@ -241,13 +305,29 @@ const Company: React.FC<any> = ({ route }) => {
       >
         <AddPackage companyId={companyId} />
       </Modal>
+      <Modal
+        visible={visible3}
+        onDismiss={hideModal3}
+        contentContainerStyle={containerStyle}
+      >
+        <AddSingleEmployee companyId={companyId} />
+      </Modal>
       <Portal>
         <FAB.Group
           open={open}
           visible
           icon={open ? "plus-minus" : "plus"}
           actions={[
-            { icon: "plus", onPress: showModal },
+            {
+              icon: "account-plus",
+              label: "เพิ่มคนเดียว",
+              onPress: showModal3,
+            },
+            {
+              icon: "account-multiple-plus",
+              label: "เพิ่มจาก Excel",
+              onPress: showModal,
+            },
             { icon: "package", onPress: showModal2 },
             {
               icon: "barcode-scan",

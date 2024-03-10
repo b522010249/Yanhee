@@ -14,19 +14,21 @@ import {
   getDoc,
   getDocs,
   onSnapshot,
+  setDoc,
 } from "firebase/firestore";
 import { useReactToPrint } from "react-to-print";
-import DropDown from "react-native-paper-dropdown"; 
+import DropDown from "react-native-paper-dropdown";
 import { useRoute } from "@react-navigation/native";
-import { DataTable, Text } from "react-native-paper";
+import { Button, DataTable, Text } from "react-native-paper";
 
-const Employee = () => {
+const Employee = ({ navigation }) => {
   const route = useRoute();
   const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
-  const namepe ="ตรวจปัสสาวะ"
+  const namepe = "ตรวจปัสสาวะ";
   const [employeeData, setEmployeeData] = useState({});
   const [HealthCheckData, setHealthCheckData] = useState([]);
+  const [HealthCheck, setHealthCheck] = useState([]);
   const [HistoryData, setHistoryData] = useState([]);
   const [showDropDown, setShowDropDown] = useState(false);
   const [year, setyear] = useState(new Date().getFullYear().toString());
@@ -85,7 +87,7 @@ const Employee = () => {
             id: doc.id,
             ...doc.data(),
           }));
-
+          setHealthCheck(healthCheckData);
           // Separate entries based on the type
           const bloodCheckData = healthCheckData.filter(
             (entry) => entry.type === "blood check"
@@ -170,8 +172,7 @@ const Employee = () => {
                     <Text style={{ ...styles.text, fontSize: 16 }}>
                       {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
                     </Text>
-                  ) :
-                  healthCheck.id === "UA" ? (
+                  ) : healthCheck.id === "UA" ? (
                     <Text style={{ ...styles.text, fontSize: 16 }}>
                       {employeeData["HN."]} {namepe}
                     </Text>
@@ -188,6 +189,45 @@ const Employee = () => {
       </View>
     );
   });
+
+  const toggleCheckupStatus = async (item) => {
+    try {
+      const healthCheckDocRef = doc(
+        db,
+        "Company",
+        companyID,
+        "Employee",
+        employeeID,
+        "History",
+        year,
+        "HealthCheck",
+        item.id
+      );
+
+      // Get the current data
+      const currentData = (await getDoc(healthCheckDocRef)).data();
+
+      // Update the CheckupStatus in Firebase
+      await setDoc(healthCheckDocRef, {
+        ...currentData,
+        CheckupStatus: !item.CheckupStatus,
+      });
+
+      // Fetch updated data from Firebase
+      const updatedSnapshot = await getDoc(healthCheckDocRef);
+
+      // Update the local state with the updated data
+      setHealthCheckData((prevData) =>
+        prevData.map((entry) =>
+          entry.id === item.id
+            ? { ...entry, CheckupStatus: !item.CheckupStatus }
+            : entry
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling CheckupStatus:", error);
+    }
+  };
 
   return (
     <ScrollView style={{ flex: 1 }}>
@@ -232,17 +272,26 @@ const Employee = () => {
               padding: 8,
             }}
           />
+          <Button
+            style={{ width: "100%" }}
+            mode="contained"
+            onPress={() => navigation.goBack()}
+          >
+            เสร็จสิ้น
+          </Button>
           <DataTable>
             <DataTable.Header>
               <DataTable.Title>รายการตรวจสุขภาพ</DataTable.Title>
               <DataTable.Title numeric>สถานะการตรวจสุขภาพ</DataTable.Title>
               <DataTable.Title numeric>สถานะผลตรวจสุขภาพ</DataTable.Title>
             </DataTable.Header>
-            {HealthCheckData.map((item) => (
+            {HealthCheck.map((item) => (
               <DataTable.Row key={item.id}>
                 <DataTable.Cell>{item.name}</DataTable.Cell>
                 <DataTable.Cell numeric>
-                  {item.CheckupStatus.toString()}
+                  <TouchableOpacity onPress={() => toggleCheckupStatus(item)}>
+                    <Text>{item.CheckupStatus.toString()}</Text>
+                  </TouchableOpacity>
                 </DataTable.Cell>
                 <DataTable.Cell numeric>
                   {item.ResultsStatus.toString()}
@@ -287,12 +336,12 @@ const styles = StyleSheet.create({
   leftContainer: {
     flex: 1.5,
     justifyContent: "center",
-    width:150,
+    width: 150,
     flexWrap: "wrap",
   },
   rightContainer: {
     flex: 1,
-    alignItems:'flex-end',
+    alignItems: "flex-end",
   },
   text: {
     fontSize: 18,
