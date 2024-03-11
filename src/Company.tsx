@@ -49,7 +49,7 @@ const countHealthChecks = async (
 
   employeesSnapshot.docs.forEach((employeeDoc) => {
     const employeeId = employeeDoc.id;
-    const employeeName = employeeDoc.data().ชื่อจริง; // Replace "ชื่อจริง" with the actual field name for employee name
+    const employeeName = employeeDoc.data().ชื่อจริง+' '+employeeDoc.data().นามสกุล; // Replace "ชื่อจริง" with the actual field name for employee name
     const order = employeeDoc.data().ลำดับ;
     const healthCheckCollectionRef = collection(
       db,
@@ -62,34 +62,31 @@ const countHealthChecks = async (
           query(healthCheckCollectionRef, where("CheckupStatus", "==", true))
         );
 
-        let countBloodCheck = 0;
-        let countPE = 0;
-        let countEKG = 0;
-        let countCXR = 0;
-        let countUA = 0;
-
-        const bloodCheckTypes = new Set<string>();
+        let PE = false;
+        let EKG = false;
+        let CXR = false;
+        let UA = false;
+        let bloodCheck = false;
 
         querySnapshot.docs.forEach((doc) => {
           const id = doc.data().id;
           switch (id) {
             case "PE":
-              countPE++;
+              PE = true;
               break;
             case "EKG":
-              countEKG++;
+              EKG = true;
               break;
             case "CXR":
-              countCXR++;
+              CXR = true;
               break;
             case "UA":
-              countUA++;
+              UA = true;
               break;
             default:
               // Assuming any other ID represents "blood check"
-              if (!bloodCheckTypes.has("blood check")) {
-                countBloodCheck++;
-                bloodCheckTypes.add("blood check");
+              if (!bloodCheck) {
+                bloodCheck = true;
               }
               break;
           }
@@ -99,29 +96,34 @@ const countHealthChecks = async (
           employeeId,
           employeeName,
           order,
-          countBloodCheck,
-          countPE,
-          countEKG,
-          countCXR,
-          countUA,
+          PE,
+          EKG,
+          CXR,
+          UA,
+          bloodCheck,
         };
       })()
     );
   });
 
   const countPerEmployee = await Promise.all(promises);
-
   // Calculate total counts
   const totals = countPerEmployee.reduce(
     (acc, counts) => {
-      acc.countBloodCheck += counts.countBloodCheck;
-      acc.countPE += counts.countPE;
-      acc.countEKG += counts.countEKG;
-      acc.countCXR += counts.countCXR;
-      acc.countUA += counts.countUA;
+      acc["จำนวนตรวจเจาะเลือด"] += counts.bloodCheck ? 1 : 0;
+      acc["จำนวนตรวจโดยแพทย์"] += counts.PE ? 1 : 0;
+      acc["จำนวนตรวจคลื่นไฟฟ้าหัวใจ"] += counts.EKG ? 1 : 0;
+      acc["จำนวนตรวจเอกซเรย์ปอด"] += counts.CXR ? 1 : 0;
+      acc["จำนวนตรวจปัสสาวะ"] += counts.UA ? 1 : 0;
       return acc;
     },
-    { countBloodCheck: 0, countPE: 0, countEKG: 0, countCXR: 0, countUA: 0 }
+    {
+      จำนวนตรวจเจาะเลือด: 0,
+      จำนวนตรวจโดยแพทย์: 0,
+      จำนวนตรวจคลื่นไฟฟ้าหัวใจ: 0,
+      จำนวนตรวจเอกซเรย์ปอด: 0,
+      จำนวนตรวจปัสสาวะ: 0,
+    }
   );
 
   return { healthCheckCounts: countPerEmployee, totalCounts: totals };
@@ -130,11 +132,11 @@ interface HealthCheckCount {
   employeeId: string;
   employeeName: string;
   order: number;
-  countBloodCheck: number;
-  countPE: number;
-  countEKG: number;
-  countCXR: number;
-  countUA: number;
+  bloodCheck: boolean;
+  PE: boolean;
+  EKG: boolean;
+  CXR: boolean;
+  UA: boolean;
 }
 const Company: React.FC<any> = ({ route }) => {
   const { companyId } = route.params;
@@ -146,11 +148,11 @@ const Company: React.FC<any> = ({ route }) => {
     HealthCheckCount[]
   >([]);
   const [totalCounts, setTotalCounts] = useState<{ [key: string]: number }>({
-    countBloodCheck: 0,
-    countPE: 0,
-    countEKG: 0,
-    countCXR: 0,
-    countUA: 0,
+    จำนวนตรวจเจาะเลือด: 0,
+    จำนวนตรวจโดยแพทย์: 0,
+    จำนวนตรวจคลื่นไฟฟ้าหัวใจ: 0,
+    จำนวนตรวจเอกซเรย์ปอด: 0,
+    จำนวนตรวจปัสสาวะ: 0,
   });
 
   const [year, setyear] = useState(new Date().getFullYear().toString());
@@ -161,6 +163,7 @@ const Company: React.FC<any> = ({ route }) => {
     { label: "2024", value: "2024" },
     { label: "2025", value: "2025" },
   ];
+  const numberOfEmployees = healthCheckCounts.length;
   const [state, setState] = React.useState({ open: false });
 
   const onStateChange = ({ open }) => setState({ open });
@@ -205,7 +208,6 @@ const Company: React.FC<any> = ({ route }) => {
   // const WaitingCount = Object.values(employeeStatus).filter(
   //   (status) => status === "Waiting Results"
   // ).length;
-
   return (
     <View style={styles.container}>
       <DropDown
@@ -224,6 +226,14 @@ const Company: React.FC<any> = ({ route }) => {
           justifyContent: "center",
         }}
       >
+        {Object.entries(totalCounts).map(([type, count]) => (
+          <Card>
+            <Card.Content>
+              <Text variant="titleLarge" key={type}>{`${type}: ${count}`}/{numberOfEmployees}</Text>
+            </Card.Content>
+          </Card>
+        ))}
+
         {/* <Card>
           <Card.Content>
             <Text variant="titleLarge">จำนวนคนทั้งหมด:{totalEmployees}</Text>
@@ -254,6 +264,7 @@ const Company: React.FC<any> = ({ route }) => {
         </Card> */}
       </View>
       <TextInput label="Search" />
+      
       <ScrollView style={{ height: "100%", width: "100%" }}>
         <View style={styles.container2}>
           {healthCheckCounts
@@ -263,27 +274,52 @@ const Company: React.FC<any> = ({ route }) => {
                 employeeId,
                 employeeName,
                 order,
-                countBloodCheck,
-                countPE,
-                countEKG,
-                countCXR,
-                countUA,
+                bloodCheck,
+                PE,
+                EKG,
+                CXR,
+                UA,
               }) => (
+                
                 <TouchableOpacity
                   key={employeeId}
                   onPress={() => handleCompanyPress(employeeId, companyId)}
                 >
-                  <Card style={{ height: 200, width: 300 }}>
+                  <Card style={{ width: 400 }}>
                     <Card.Content>
                       <Text variant="titleLarge">ลำดับ: {order}</Text>
                       <Text variant="titleLarge">ชื่อ: {employeeName}</Text>
-                      <Text variant="titleLarge">
-                        ตรวจเจาะเลือด: {countBloodCheck}
+                      <Text
+                        variant="titleLarge"
+                        style={{ color: bloodCheck ? "green" : "black" }}
+                      >
+                        ตรวจเจาะเลือด:{" "}
+                        {bloodCheck ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
                       </Text>
-                      <Text variant="titleLarge">ตรวจโดยแพทย์: {countPE}</Text>
-                      <Text variant="titleLarge">ตรวจxray: {countEKG}</Text>
-                      <Text variant="titleLarge">ตรวจหัวใจ: {countCXR}</Text>
-                      <Text variant="titleLarge">ตรวจปัสสาวะ: {countUA}</Text>
+                      <Text
+                        variant="titleLarge"
+                        style={{ color: PE ? "green" : "black" }}
+                      >
+                        ตรวจโดยแพทย์: {PE ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
+                      </Text>
+                      <Text
+                        variant="titleLarge"
+                        style={{ color: EKG ? "green" : "black" }}
+                      >
+                        ตรวจxray: {EKG ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
+                      </Text>
+                      <Text
+                        variant="titleLarge"
+                        style={{ color: CXR ? "green" : "black" }}
+                      >
+                        ตรวจหัวใจ: {CXR ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
+                      </Text>
+                      <Text
+                        variant="titleLarge"
+                        style={{ color: UA ? "green" : "black" }}
+                      >
+                        ตรวจปัสสาวะ: {UA ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
+                      </Text>
                     </Card.Content>
                   </Card>
                 </TouchableOpacity>
@@ -357,8 +393,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "space-around",
     alignContent: "space-around",
   },
   card: {
