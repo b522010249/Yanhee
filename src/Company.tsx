@@ -30,7 +30,6 @@ interface Employee {
   "ว/ด/ปีเกิด": Date;
   สถานะ: boolean;
 }
-
 const countHealthChecks = async (
   companyId: string,
   historyId: string
@@ -38,6 +37,7 @@ const countHealthChecks = async (
   healthCheckCounts: HealthCheckCount[];
   totalCounts: { [key: string]: number };
 }> => {
+  let noCheckCount = 0
   const employeesCollectionRef = collection(
     db,
     `Company/${companyId}/Employee`
@@ -49,15 +49,38 @@ const countHealthChecks = async (
 
   employeesSnapshot.docs.forEach((employeeDoc) => {
     const employeeId = employeeDoc.id;
-    const employeeName = employeeDoc.data().ชื่อจริง+' '+employeeDoc.data().นามสกุล; // Replace "ชื่อจริง" with the actual field name for employee name
+    const employeeName =
+      employeeDoc.data().ชื่อจริง + " " + employeeDoc.data().นามสกุล;
     const order = employeeDoc.data().ลำดับ;
-    const healthCheckCollectionRef = collection(
+    const historyCollectionRef = collection(
       db,
-      `Company/${companyId}/Employee/${employeeId}/History/${historyId}/HealthCheck`
+      `Company/${companyId}/Employee/${employeeId}/History`
     );
 
     promises.push(
       (async () => {
+        const historySnapshot = await getDocs(historyCollectionRef);
+        const hasHistory = historySnapshot.docs.some(
+          (doc) => doc.id === historyId
+        );
+        if (!hasHistory) {
+          noCheckCount++; 
+          return {
+            employeeId,
+            employeeName,
+            order,
+            noCheckup: true,
+            PE: false,
+            EKG: false,
+            CXR: false,
+            UA: false,
+            bloodCheck: false,
+          };
+        }
+        const healthCheckCollectionRef = collection(
+          db,
+          `Company/${companyId}/Employee/${employeeId}/History/${historyId}/HealthCheck`
+        );
         const querySnapshot = await getDocs(
           query(healthCheckCollectionRef, where("CheckupStatus", "==", true))
         );
@@ -67,6 +90,7 @@ const countHealthChecks = async (
         let CXR = false;
         let UA = false;
         let bloodCheck = false;
+        let noCheckup = false;
 
         querySnapshot.docs.forEach((doc) => {
           const id = doc.data().id;
@@ -101,6 +125,7 @@ const countHealthChecks = async (
           CXR,
           UA,
           bloodCheck,
+          noCheckup
         };
       })()
     );
@@ -137,6 +162,7 @@ interface HealthCheckCount {
   EKG: boolean;
   CXR: boolean;
   UA: boolean;
+  noCheckup: boolean;
 }
 const Company: React.FC<any> = ({ route }) => {
   const { companyId } = route.params;
@@ -147,6 +173,8 @@ const Company: React.FC<any> = ({ route }) => {
   const [healthCheckCounts, setHealthCheckCounts] = useState<
     HealthCheckCount[]
   >([]);
+  const [searchInput, setSearchInput] = useState("");
+
   const [totalCounts, setTotalCounts] = useState<{ [key: string]: number }>({
     จำนวนตรวจเจาะเลือด: 0,
     จำนวนตรวจโดยแพทย์: 0,
@@ -157,17 +185,13 @@ const Company: React.FC<any> = ({ route }) => {
 
   const [year, setyear] = useState(new Date().getFullYear().toString());
   const [showDropDown, setShowDropDown] = useState(false);
-  const years = [
-    { label: "2022", value: "2022" },
-    { label: "2023", value: "2023" },
-    { label: "2024", value: "2024" },
-    { label: "2025", value: "2025" },
-  ];
-  const numberOfEmployees = healthCheckCounts.length;
+  const [years, setYears] = useState<string[]>([]);
+  const numberOfEmployees = healthCheckCounts.filter(
+    (employee) => !employee.noCheckup
+  ).length;
   const [state, setState] = React.useState({ open: false });
 
   const onStateChange = ({ open }) => setState({ open });
-
   const { open } = state;
 
   const showModal = () => setVisible(true);
@@ -185,14 +209,59 @@ const Company: React.FC<any> = ({ route }) => {
     const fetchData = async () => {
       const { healthCheckCounts, totalCounts } = await countHealthChecks(
         companyId,
-        "2024"
+        year
       );
       setHealthCheckCounts(healthCheckCounts);
       setTotalCounts(totalCounts);
     };
+    const fetchYears = async () => {
+      try {
+        const employeeCollectionRef = collection(
+          db,
+          `Company/${companyId}/Employee`
+        );
+        const employeeSnapshot = await getDocs(employeeCollectionRef);
 
-    fetchData();
-  }, []);
+        const uniqueYearsSet = new Set<string>();
+
+        // Create an array of promises for the inner fetch operations
+        const fetchPromises: any[] = [];
+
+        employeeSnapshot.forEach((employeeDoc) => {
+          const employeeId = employeeDoc.id;
+          const historyCollectionRef = collection(
+            db,
+            `Company/${companyId}/Employee/${employeeId}/History`
+          );
+          const historyPromise = getDocs(historyCollectionRef).then(
+            (historySnapshot) => {
+              historySnapshot.forEach((historyDoc) => {
+                const historyId = historyDoc.id;
+                // Extract the year from the history ID (assuming it's at the end)
+                const year = historyId.substring(historyId.length - 4);
+                uniqueYearsSet.add(year);
+              });
+            }
+          );
+          fetchPromises.push(historyPromise);
+        });
+
+        // Wait for all promises to resolve before setting the state
+        await Promise.all(fetchPromises);
+
+        const uniqueYearsArray = Array.from(uniqueYearsSet);
+        setYears(uniqueYearsArray);
+      } catch (error) {
+        console.error("Error fetching years:", error);
+      }
+    };
+    const fetchDataAndYears = async () => {
+      await fetchYears();
+      fetchData();
+    };
+
+    fetchDataAndYears();
+  }, [companyId, year]);
   const handleCompanyPress = (employeeID: string, companyID: string) => {
     navigation.navigate("Employee", { employeeID, companyID });
   };
@@ -208,6 +277,9 @@ const Company: React.FC<any> = ({ route }) => {
   // const WaitingCount = Object.values(employeeStatus).filter(
   //   (status) => status === "Waiting Results"
   // ).length;
+  const filteredHealthCheckCounts = healthCheckCounts.filter((employee) =>
+    employee.employeeName.toLowerCase().includes(searchInput.toLowerCase())
+  );
   return (
     <View style={styles.container}>
       <DropDown
@@ -217,7 +289,7 @@ const Company: React.FC<any> = ({ route }) => {
         onDismiss={() => setShowDropDown(false)}
         value={year}
         setValue={setyear}
-        list={years}
+        list={years.map((year) => ({ label: year, value: year }))}
       />
       <View
         style={{
@@ -229,7 +301,9 @@ const Company: React.FC<any> = ({ route }) => {
         {Object.entries(totalCounts).map(([type, count]) => (
           <Card>
             <Card.Content>
-              <Text variant="titleLarge" key={type}>{`${type}: ${count}`}/{numberOfEmployees}</Text>
+              <Text variant="titleLarge" key={type}>
+                {`${type}: ${count}`}/{numberOfEmployees}
+              </Text>
             </Card.Content>
           </Card>
         ))}
@@ -263,11 +337,15 @@ const Company: React.FC<any> = ({ route }) => {
           </Card.Content>
         </Card> */}
       </View>
-      <TextInput label="Search" />
-      
+      <TextInput
+        label="Search"
+        value={searchInput}
+        onChangeText={(text) => setSearchInput(text)}
+      />
+
       <ScrollView style={{ height: "100%", width: "100%" }}>
         <View style={styles.container2}>
-          {healthCheckCounts
+          {filteredHealthCheckCounts
             .sort((a, b) => a.order - b.order)
             .map(
               ({
@@ -279,6 +357,7 @@ const Company: React.FC<any> = ({ route }) => {
                 EKG,
                 CXR,
                 UA,
+                noCheckup
               }) => (
                 
                 <TouchableOpacity
@@ -289,6 +368,12 @@ const Company: React.FC<any> = ({ route }) => {
                     <Card.Content>
                       <Text variant="titleLarge">ลำดับ: {order}</Text>
                       <Text variant="titleLarge">ชื่อ: {employeeName}</Text>
+                      {noCheckup ? (
+                        <Text variant="titleLarge" style={{ color: "red" }}>
+                          ไม่มีการตรวจปีนี้
+                        </Text>
+                      ) : (
+                        <>
                       <Text
                         variant="titleLarge"
                         style={{ color: bloodCheck ? "green" : "black" }}
@@ -320,6 +405,8 @@ const Company: React.FC<any> = ({ route }) => {
                       >
                         ตรวจปัสสาวะ: {UA ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
                       </Text>
+                        </>
+                      )}
                     </Card.Content>
                   </Card>
                 </TouchableOpacity>
