@@ -30,6 +30,11 @@ interface Employee {
   "ว/ด/ปีเกิด": Date;
   สถานะ: boolean;
 }
+interface HealthCheckType {
+  id: string;
+  name: string;
+}
+let healthCheckTypes: HealthCheckType[] = [];
 const countHealthChecks = async (
   companyId: string,
   historyId: string
@@ -64,92 +69,59 @@ const countHealthChecks = async (
           (doc) => doc.id === historyId
         );
         if (!hasHistory) {
-          noCheckCount++; 
+          noCheckCount++;
           return {
             employeeId,
             employeeName,
             order,
             noCheckup: true,
-            PE: false,
-            EKG: false,
-            CXR: false,
-            UA: false,
-            bloodCheck: false,
+            checks: {},
           };
         }
         const healthCheckCollectionRef = collection(
           db,
           `Company/${companyId}/Employee/${employeeId}/History/${historyId}/HealthCheck`
         );
-        const querySnapshot = await getDocs(
-          query(healthCheckCollectionRef, where("CheckupStatus", "==", true))
-        );
+        const querySnapshot = await getDocs(healthCheckCollectionRef);
 
-        let PE = false;
-        let EKG = false;
-        let CXR = false;
-        let UA = false;
-        let bloodCheck = false;
-        let noCheckup = false;
-
+        const checks: { [key: string]: boolean } = {};
+        let bloodCheckFound = false;
         querySnapshot.docs.forEach((doc) => {
+          const type = doc.data().type;
           const id = doc.data().id;
-          switch (id) {
-            case "PE":
-              PE = true;
-              break;
-            case "EKG":
-              EKG = true;
-              break;
-            case "CXR":
-              CXR = true;
-              break;
-            case "UA":
-              UA = true;
-              break;
-            default:
-              // Assuming any other ID represents "blood check"
-              if (!bloodCheck) {
-                bloodCheck = true;
-              }
-              break;
-          }
+          const name= doc.data().name;
+          const checkupstatus = doc.data().CheckupStatus;
+
+          if (type !== "blood check") {
+            checks[name] = checkupstatus; // Include PE regardless of CheckupStatus
+        } else if (type === "blood check" && !checks["bloodCheck"]) {
+            checks["bloodCheck"] = checkupstatus; // Include bloodCheck if not already included
+        }
         });
+
 
         return {
           employeeId,
           employeeName,
           order,
-          PE,
-          EKG,
-          CXR,
-          UA,
-          bloodCheck,
-          noCheckup
+          noCheckup: false,
+          checks,
         };
       })()
     );
   });
 
   const countPerEmployee = await Promise.all(promises);
-  // Calculate total counts
-  const totals = countPerEmployee.reduce(
-    (acc, counts) => {
-      acc["จำนวนตรวจเจาะเลือด"] += counts.bloodCheck ? 1 : 0;
-      acc["จำนวนตรวจโดยแพทย์"] += counts.PE ? 1 : 0;
-      acc["จำนวนตรวจคลื่นไฟฟ้าหัวใจ"] += counts.EKG ? 1 : 0;
-      acc["จำนวนตรวจเอกซเรย์ปอด"] += counts.CXR ? 1 : 0;
-      acc["จำนวนตรวจปัสสาวะ"] += counts.UA ? 1 : 0;
-      return acc;
-    },
-    {
-      จำนวนตรวจเจาะเลือด: 0,
-      จำนวนตรวจโดยแพทย์: 0,
-      จำนวนตรวจคลื่นไฟฟ้าหัวใจ: 0,
-      จำนวนตรวจเอกซเรย์ปอด: 0,
-      จำนวนตรวจปัสสาวะ: 0,
-    }
-  );
+
+  // Calculate total counts dynamically
+  const totals: { [key: string]: number } = {};
+
+  healthCheckTypes.forEach((type) => {
+    totals[type.name] = countPerEmployee.reduce(
+      (acc, counts) => (counts.checks[type.id] ? acc + 1 : acc),
+      0
+    );
+  });
 
   return { healthCheckCounts: countPerEmployee, totalCounts: totals };
 };
@@ -157,12 +129,8 @@ interface HealthCheckCount {
   employeeId: string;
   employeeName: string;
   order: number;
-  bloodCheck: boolean;
-  PE: boolean;
-  EKG: boolean;
-  CXR: boolean;
-  UA: boolean;
   noCheckup: boolean;
+  checks: { [healthCheckTypeId: string]: boolean };
 }
 const Company: React.FC<any> = ({ route }) => {
   const { companyId } = route.params;
@@ -212,6 +180,7 @@ const Company: React.FC<any> = ({ route }) => {
         year
       );
       setHealthCheckCounts(healthCheckCounts);
+      console.log('healthCheckCounts:', healthCheckCounts);
       setTotalCounts(totalCounts);
     };
     const fetchYears = async () => {
@@ -345,73 +314,45 @@ const Company: React.FC<any> = ({ route }) => {
 
       <ScrollView style={{ height: "100%", width: "100%" }}>
         <View style={styles.container2}>
-          {filteredHealthCheckCounts
-            .sort((a, b) => a.order - b.order)
-            .map(
-              ({
-                employeeId,
-                employeeName,
-                order,
-                bloodCheck,
-                PE,
-                EKG,
-                CXR,
-                UA,
-                noCheckup
-              }) => (
-                
-                <TouchableOpacity
-                  key={employeeId}
-                  onPress={() => handleCompanyPress(employeeId, companyId)}
+        {filteredHealthCheckCounts
+  .sort((a, b) => a.order - b.order)
+  .map(
+    ({
+      employeeId,
+      employeeName,
+      order,
+      noCheckup,
+      checks, // This now contains the health check results dynamically
+    }) => (
+      <TouchableOpacity
+        key={employeeId}
+        onPress={() => handleCompanyPress(employeeId, companyId)}
+      >
+        <Card style={{ width: 400 }}>
+          <Card.Content>
+            <Text variant="titleLarge">ลำดับ: {order}</Text>
+            <Text variant="titleLarge">ชื่อ: {employeeName}</Text>
+            {noCheckup ? (
+              <Text variant="titleLarge" style={{ color: "red" }}>
+                ไม่มีการตรวจปีนี้
+              </Text>
+            ) : (
+              Object.entries(checks).map(([checkType, checked]) => (
+                <Text
+                  key={checkType}
+                  variant="titleLarge"
+                  style={{ color: checked ? "green" : "black" }}
                 >
-                  <Card style={{ width: 400 }}>
-                    <Card.Content>
-                      <Text variant="titleLarge">ลำดับ: {order}</Text>
-                      <Text variant="titleLarge">ชื่อ: {employeeName}</Text>
-                      {noCheckup ? (
-                        <Text variant="titleLarge" style={{ color: "red" }}>
-                          ไม่มีการตรวจปีนี้
-                        </Text>
-                      ) : (
-                        <>
-                      <Text
-                        variant="titleLarge"
-                        style={{ color: bloodCheck ? "green" : "black" }}
-                      >
-                        ตรวจเจาะเลือด:{" "}
-                        {bloodCheck ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
-                      </Text>
-                      <Text
-                        variant="titleLarge"
-                        style={{ color: PE ? "green" : "black" }}
-                      >
-                        ตรวจโดยแพทย์: {PE ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
-                      </Text>
-                      <Text
-                        variant="titleLarge"
-                        style={{ color: EKG ? "green" : "black" }}
-                      >
-                        ตรวจxray: {EKG ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
-                      </Text>
-                      <Text
-                        variant="titleLarge"
-                        style={{ color: CXR ? "green" : "black" }}
-                      >
-                        ตรวจหัวใจ: {CXR ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
-                      </Text>
-                      <Text
-                        variant="titleLarge"
-                        style={{ color: UA ? "green" : "black" }}
-                      >
-                        ตรวจปัสสาวะ: {UA ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
-                      </Text>
-                        </>
-                      )}
-                    </Card.Content>
-                  </Card>
-                </TouchableOpacity>
-              )
+                  {checkType}: {checked ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
+                </Text>
+              ))
             )}
+          </Card.Content>
+        </Card>
+      </TouchableOpacity>
+    )
+  )}
+
         </View>
       </ScrollView>
       <Modal

@@ -87,7 +87,7 @@ const Sticker = ({ employeeID, companyID }, ref) => {
     content: () => ref.current,
   });
   const sortedHealthCheckData = HealthCheckData.sort((a, b) => {
-    return a.id === "PE" ? -1 : b.id === "PE" ? 1 : 0;
+    return b.id === "PE" ? -1 : a.id === "PE" ? 1 : 0;
   });
   return (
     <View ref={ref}>
@@ -112,7 +112,7 @@ const Sticker = ({ employeeID, companyID }, ref) => {
                 </Text>
               ) : healthCheck.id === "PE" ? (
                 <Text style={{ ...styles.text, fontSize: 16 }}>
-                  {employeeData["HN."]} {employeeData["ว/ด/ปีเกิด"]}
+                  {employeeData["HN."]}  {employeeData["ว/ด/ปีเกิด"]}
                 </Text>
               ) : healthCheck.id === "UA" ? (
                 <Text style={{ ...styles.text, fontSize: 16 }}>

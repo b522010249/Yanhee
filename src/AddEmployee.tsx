@@ -85,20 +85,41 @@ const AddEmployee = (props: { companyId: any }) => {
               dateNF: "dd/mm/yyyy", // Format for parsing dates
             }
           );
+          const getThaiMonth = (month) => {
+            const thaiMonths = [
+              'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+              'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'
+            ];
+          
+            return thaiMonths[month];
+          };
           const formattedData = jsonData.map((row) => {
+            // Add default value for "P." column if it doesn't exist
+            if (!row.hasOwnProperty("P.")) {
+              row["P."] = "1";
+            }
+  
             return Object.fromEntries(
               Object.entries(row).map(([key, value]) => {
-                if (value instanceof Date) {
-                  // Format date as text, you can use any format you prefer
-                  return [key, value.toLocaleDateString()];
+                if (key === "ว/ด/ปีเกิด" && value) {
+                  // Format date with Thai month abbreviation
+                  const [day, month, year] = value.split("/");
+                  const thaiMonth = getThaiMonth(parseInt(month)-1); // Adjust month index
+                  const BEyear = parseInt(year) + 543;
+                  return [key, `${day} ${thaiMonth} ${BEyear}`];
+                } else if (key === "P.") {
+                  // Add default value for "P." column if it doesn't exist
+                  return [key, value || "1"];
+                } else {
+                  return [key, value];
                 }
-                return [key, value];
               })
             );
           });
 
           setConvertedData(formattedData);
-          console.log(formattedData)
+          console.log(jsonData);
+          console.log(formattedData);
           console.log("Data picked");
 
           // Continue with the rest of your code to process the workbook
