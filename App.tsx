@@ -17,9 +17,9 @@ import AddExtra from "./src/AddExtra";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import SearchScan from "./src/SearchScan";
 import test from "./src/test";
-import Sticker from "./src/Sticker";
 import AddSingleEmployee from "./src/AddSingleEmployee";
 import Login from "./src/Login";
+import PackageList from "./src/PackageList";
 
 export default function App() {
   const theme = {
@@ -147,6 +147,11 @@ export default function App() {
                 <Stack.Screen
                   name="test"
                   component={test}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="PackageList"
+                  component={PackageList}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen

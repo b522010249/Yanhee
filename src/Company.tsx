@@ -452,6 +452,7 @@ const Company: React.FC<any> = ({ route }) => {
               onPress: showModal,
             },
             { icon: "package", onPress: showModal2 },
+            { icon: "package-variant", onPress: showModal2 },
             {
               icon: "barcode-scan",
               label: "barcode-scan",

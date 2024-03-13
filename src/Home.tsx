@@ -49,9 +49,9 @@ const Home: React.FC<any> = ({ navigation }) => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation.navigate("AddPackage")}
+            onPress={() => navigation.navigate("PackageList")}
           >
-            <Text>จัดการแพ๊คเกจตรวจสุขภาพ</Text>
+            <Text>แพ๊คเกจตรวจสุขภาพ</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.card}
