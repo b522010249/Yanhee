@@ -17,9 +17,9 @@ import AddExtra from "./src/AddExtra";
 import { DefaultTheme, Provider as PaperProvider } from "react-native-paper";
 import SearchScan from "./src/SearchScan";
 import test from "./src/test";
-import Sticker from "./src/Sticker";
 import AddSingleEmployee from "./src/AddSingleEmployee";
 import Login from "./src/Login";
+import PackageList from "./src/PackageList";
 
 export default function App() {
   const theme = {
@@ -83,28 +83,82 @@ export default function App() {
         <View style={styles.Screen}>
           <View style={styles.Body}>
             <NavigationContainer>
-              <Stack.Navigator screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="Login" component={Login} />
-                <Stack.Screen name="Home" component={Homescreen} />
-                <Stack.Screen name="AddCompany" component={AddCompany} />
+              <Stack.Navigator>
+                <Stack.Screen
+                  name="Login"
+                  component={Login}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="Home"
+                  component={Homescreen}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="AddCompany"
+                  component={AddCompany}
+                  options={{ headerShown: false }}
+                />
                 <Stack.Screen
                   name="CompanyListScreen"
                   component={CompanyListScreen}
+                  options={{ headerShown: false }}
                 />
-                <Stack.Screen name="Company" component={Company} />
-                <Stack.Screen name="AddPackage" component={AddPackage} />
+                <Stack.Screen
+                  name="Company"
+                  component={Company}
+                  options={{ headerShown: true }}
+                />
+                <Stack.Screen
+                  name="AddPackage"
+                  component={AddPackage}
+                  options={{ headerShown: false }}
+                />
                 <Stack.Screen
                   name="AddHeatlhCheck"
                   component={AddHeatlhCheck}
+                  options={{ headerShown: false }}
                 />
-                <Stack.Screen name="Scan" component={Scan} />
-                <Stack.Screen name="HealthCheck" component={HealthCheck} />
-                <Stack.Screen name="Employee" component={Employee} />
-                <Stack.Screen name="AddExtra" component={AddExtra} />
-                <Stack.Screen name="SearchScan" component={SearchScan} />
-                <Stack.Screen name="test" component={test} />
-      
-                <Stack.Screen name="AddSingleEmployee" component={AddSingleEmployee} />
+                <Stack.Screen
+                  name="Scan"
+                  component={Scan}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="HealthCheck"
+                  component={HealthCheck}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="Employee"
+                  component={Employee}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="AddExtra"
+                  component={AddExtra}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="SearchScan"
+                  component={SearchScan}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="test"
+                  component={test}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="PackageList"
+                  component={PackageList}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="AddSingleEmployee"
+                  component={AddSingleEmployee}
+                  options={{ headerShown: false }}
+                />
               </Stack.Navigator>
             </NavigationContainer>
           </View>
