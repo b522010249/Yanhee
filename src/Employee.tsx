@@ -329,19 +329,25 @@ export default Employee;
 
 const styles = StyleSheet.create({
   sticker: {
-    pageBreakBefore: "always",
     flexDirection: "column",
+    flex:1,
+    display:"flex",
     marginLeft: 15,
+
+    pageBreakAfter: 'always',
   },
   leftContainer: {
-    flex: 1.5,
-    justifyContent: "center",
-    width: 150,
-    flexWrap: "wrap",
+    flex: 1,
+    display:"flex",
+    position:"relative",
+    justifyContent: "space-between",
+
   },
   rightContainer: {
-    flex: 1,
-    alignItems: "flex-end",
+
+    position:"absolute",
+    top: 0,
+    right: -20,
   },
   text: {
     fontSize: 18,
