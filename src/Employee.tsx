@@ -250,7 +250,6 @@ const Employee = ({ navigation }) => {
           <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
             <Text>พิมพ์สติกเกอร์ </Text>
           </TouchableOpacity>
-          <Biliing employeeData={employeeData}/>
         </View>
         <Text>
           {HistoryData.length > 0
@@ -298,6 +297,10 @@ const Employee = ({ navigation }) => {
               </DataTable.Row>
             ))}
           </DataTable>
+          <View>
+            <Text>สั่งพิมใบเสร็จ</Text>
+          <Biliing employeeData={employeeData} companyId={companyID}/>
+          </View>
           {/* <View>
             <TextInput placeholder="ความดันครั้งที่ 1" />
             <TextInput placeholder="ความดันครั้งที่ 2" />
