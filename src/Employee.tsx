@@ -20,11 +20,13 @@ import { useReactToPrint } from "react-to-print";
 import DropDown from "react-native-paper-dropdown";
 import { useRoute } from "@react-navigation/native";
 import { Button, DataTable, Text } from "react-native-paper";
-
+import BillingToPrint from './BillingToPrint'
+import Biliing from "./Biliing";
 const Employee = ({ navigation }) => {
   const route = useRoute();
   const { employeeID, companyID } = route.params;
   const componentRef = useRef(null);
+
   const namepe = "ตรวจปัสสาวะ";
   const [employeeData, setEmployeeData] = useState({});
   const [HealthCheckData, setHealthCheckData] = useState([]);
@@ -242,16 +244,13 @@ const Employee = ({ navigation }) => {
       />
       <View style={{ flex: 1, padding: 16 }}>
         <View>
-          <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
-            <Text>พิมพ์ทั้งหมด </Text>
-          </TouchableOpacity>
-          {/* style={{ display: "none" }} */}
-          <div>
+          <div style={{ display: "none" }}>
             <ComponentToPrint ref={componentRef} companyID={companyID} />
           </div>
-          <TouchableOpacity style={styles.incard2}>
-            <Text>พิมพ์สติกเกอร์</Text>
+          <TouchableOpacity style={styles.incard2} onPress={handlePrint}>
+            <Text>พิมพ์สติกเกอร์ </Text>
           </TouchableOpacity>
+          <Biliing employeeData={employeeData}/>
         </View>
         <Text>
           {HistoryData.length > 0
@@ -299,7 +298,7 @@ const Employee = ({ navigation }) => {
               </DataTable.Row>
             ))}
           </DataTable>
-          <View>
+          {/* <View>
             <TextInput placeholder="ความดันครั้งที่ 1" />
             <TextInput placeholder="ความดันครั้งที่ 2" />
             <TextInput placeholder="ชีพจรครั้งที่ 1" />
@@ -318,7 +317,7 @@ const Employee = ({ navigation }) => {
             <Text>มียา/สมุนไพร/อาหารเสรืมที่ใช้ประจำ</Text>
             <Text>มีประวัติแพ้ยา/อาหาร</Text>
             <Text>มีประวัติรักษาวัณโรคปอด หรือ โรคที่เกี่ยวกับปอด</Text>
-          </View>
+          </View> */}
         </View>
       </View>
     </ScrollView>
@@ -330,22 +329,20 @@ export default Employee;
 const styles = StyleSheet.create({
   sticker: {
     flexDirection: "column",
-    flex:1,
-    display:"flex",
+    flex: 1,
+    display: "flex",
     marginLeft: 15,
 
-    pageBreakAfter: 'always',
+    pageBreakAfter: "always",
   },
   leftContainer: {
     flex: 1,
-    display:"flex",
-    position:"relative",
+    display: "flex",
+    position: "relative",
     justifyContent: "space-between",
-
   },
   rightContainer: {
-
-    position:"absolute",
+    position: "absolute",
     top: 0,
     right: -20,
   },

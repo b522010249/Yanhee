@@ -101,7 +101,12 @@ const Home: React.FC<any> = ({ navigation }) => {
           >
             <Text>Stickertest</Text>
           </TouchableOpacity>
-          
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => navigation.navigate("BillingToPrint")}
+          >
+            <Text>Billing</Text>
+          </TouchableOpacity>
           
         </View>
       </ScrollView>
