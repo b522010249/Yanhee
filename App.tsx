@@ -20,6 +20,7 @@ import test from "./src/test";
 import AddSingleEmployee from "./src/AddSingleEmployee";
 import Login from "./src/Login";
 import PackageList from "./src/PackageList";
+import BillingToPrint from "./src/BillingToPrint";
 
 export default function App() {
   const theme = {
@@ -158,6 +159,11 @@ export default function App() {
                   name="AddSingleEmployee"
                   component={AddSingleEmployee}
                   options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="BillingToPrint"
+                  component={BillingToPrint}
+                  options={{ headerShown: true }}
                 />
               </Stack.Navigator>
             </NavigationContainer>
