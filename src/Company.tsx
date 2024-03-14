@@ -17,6 +17,7 @@ import AddEmployee from "./AddEmployee";
 import DropDown from "react-native-paper-dropdown";
 import AddPackage from "./AddPackage";
 import AddSingleEmployee from "./AddSingleEmployee";
+import ExportExcelStatus from "./ExportExcelstatus";
 
 interface Employee {
   id: string;
@@ -88,14 +89,13 @@ const countHealthChecks = async (
         let bloodCheckFound = false;
         querySnapshot.docs.forEach((doc) => {
           const type = doc.data().type;
-          const id = doc.data().id;
           const name= doc.data().name;
           const checkupstatus = doc.data().CheckupStatus;
 
           if (type !== "blood check") {
             checks[name] = checkupstatus; // Include PE regardless of CheckupStatus
-        } else if (type === "blood check" && !checks["bloodCheck"]) {
-            checks["bloodCheck"] = checkupstatus; // Include bloodCheck if not already included
+        } else if (type === "blood check" && !checks["ตรวจรายการเจาะเลือด"]) {
+            checks["ตรวจรายการเจาะเลือด"] = checkupstatus; // Include bloodCheck if not already included
         }
         });
 
@@ -179,7 +179,9 @@ const Company: React.FC<any> = ({ route }) => {
         companyId,
         year
       );
+      
       setHealthCheckCounts(healthCheckCounts);
+      
       console.log('healthCheckCounts:', healthCheckCounts);
       setTotalCounts(totalCounts);
     };
@@ -251,6 +253,8 @@ const Company: React.FC<any> = ({ route }) => {
   );
   return (
     <View style={styles.container}>
+      <ExportExcelStatus healthCheckCounts={healthCheckCounts} />
+
       <DropDown
         label={"Year"}
         visible={showDropDown}
