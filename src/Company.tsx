@@ -43,7 +43,7 @@ const countHealthChecks = async (
   healthCheckCounts: HealthCheckCount[];
   totalCounts: { [key: string]: number };
 }> => {
-  let noCheckCount = 0
+  let noCheckCount = 0;
   const employeesCollectionRef = collection(
     db,
     `Company/${companyId}/Employee`
@@ -89,16 +89,15 @@ const countHealthChecks = async (
         let bloodCheckFound = false;
         querySnapshot.docs.forEach((doc) => {
           const type = doc.data().type;
-          const name= doc.data().name;
+          const name = doc.data().name;
           const checkupstatus = doc.data().CheckupStatus;
 
           if (type !== "blood check") {
             checks[name] = checkupstatus; // Include PE regardless of CheckupStatus
-        } else if (type === "blood check" && !checks["ตรวจรายการเจาะเลือด"]) {
+          } else if (type === "blood check" && !checks["ตรวจรายการเจาะเลือด"]) {
             checks["ตรวจรายการเจาะเลือด"] = checkupstatus; // Include bloodCheck if not already included
-        }
+          }
         });
-
 
         return {
           employeeId,
@@ -143,13 +142,7 @@ const Company: React.FC<any> = ({ route }) => {
   >([]);
   const [searchInput, setSearchInput] = useState("");
 
-  const [totalCounts, setTotalCounts] = useState<{ [key: string]: number }>({
-    จำนวนตรวจเจาะเลือด: 0,
-    จำนวนตรวจโดยแพทย์: 0,
-    จำนวนตรวจคลื่นไฟฟ้าหัวใจ: 0,
-    จำนวนตรวจเอกซเรย์ปอด: 0,
-    จำนวนตรวจปัสสาวะ: 0,
-  });
+  const [totalCounts, setTotalCounts] = useState<{ [key: string]: number }>({});
 
   const [year, setyear] = useState(new Date().getFullYear().toString());
   const [showDropDown, setShowDropDown] = useState(false);
@@ -179,11 +172,25 @@ const Company: React.FC<any> = ({ route }) => {
         companyId,
         year
       );
-      
+
       setHealthCheckCounts(healthCheckCounts);
-      
-      console.log('healthCheckCounts:', healthCheckCounts);
-      setTotalCounts(totalCounts);
+      let checkCounts = {};
+      healthCheckCounts.forEach((employee) => {
+        Object.keys(employee.checks).forEach((checkType) => {
+          if (employee.checks[checkType]) {
+            if (!checkCounts[checkType]) {
+              checkCounts[checkType] = 1; // Initialize count if it doesn't exist
+            } else {
+              checkCounts[checkType]++; // Increment count if it exists
+            }
+          }
+        });
+      });
+      console.log("Health Check Counts:", checkCounts);
+      console.log("healthCheckCounts:", healthCheckCounts);
+
+      setTotalCounts((prevCounts) => ({ ...prevCounts, ...checkCounts }));
+      console.log("Totalcount:", totalCounts);
     };
     const fetchYears = async () => {
       try {
@@ -232,22 +239,19 @@ const Company: React.FC<any> = ({ route }) => {
     };
 
     fetchDataAndYears();
+    const employeesCollectionRef = collection(
+      db,
+      `Company/${companyId}/Employee`
+    );
+    const unsubscribe = onSnapshot(employeesCollectionRef, (snapshot) => {
+      // Handle changes in the data here
+      fetchData();
+    });
+    return () => unsubscribe();
   }, [companyId, year]);
   const handleCompanyPress = (employeeID: string, companyID: string) => {
     navigation.navigate("Employee", { employeeID, companyID });
   };
-  // const notCompleteCount = Object.values(employeeStatus).filter(
-  //   (status) => status === "Not Complete"
-  // ).length;
-  // const onGoingCount = Object.values(employeeStatus).filter(
-  //   (status) => status === "On Going"
-  // ).length;
-  // const CompleteCount = Object.values(employeeStatus).filter(
-  //   (status) => status === "Complete"
-  // ).length;
-  // const WaitingCount = Object.values(employeeStatus).filter(
-  //   (status) => status === "Waiting Results"
-  // ).length;
   const filteredHealthCheckCounts = healthCheckCounts.filter((employee) =>
     employee.employeeName.toLowerCase().includes(searchInput.toLowerCase())
   );
@@ -280,35 +284,6 @@ const Company: React.FC<any> = ({ route }) => {
             </Card.Content>
           </Card>
         ))}
-
-        {/* <Card>
-          <Card.Content>
-            <Text variant="titleLarge">จำนวนคนทั้งหมด:{totalEmployees}</Text>
-          </Card.Content>
-        </Card>
-        <Card>
-          <Card.Content>
-            <Text variant="titleLarge">
-              คนที่ยังไม่ได้ตรวจ :{notCompleteCount}
-            </Text>
-          </Card.Content>
-        </Card>
-        <Card>
-          <Card.Content>
-            <Text variant="titleLarge">กำลังตรวจ:{onGoingCount}</Text>
-          </Card.Content>
-        </Card>
-
-        <Card>
-          <Card.Content>
-            <Text variant="titleLarge">รอผลตรวจ :{WaitingCount}</Text>
-          </Card.Content>
-        </Card>
-        <Card>
-          <Card.Content>
-            <Text variant="titleLarge">ตรวจเสร็จสิ้น :{CompleteCount}</Text>
-          </Card.Content>
-        </Card> */}
       </View>
       <TextInput
         label="Search"
@@ -318,45 +293,45 @@ const Company: React.FC<any> = ({ route }) => {
 
       <ScrollView style={{ height: "100%", width: "100%" }}>
         <View style={styles.container2}>
-        {filteredHealthCheckCounts
-  .sort((a, b) => a.order - b.order)
-  .map(
-    ({
-      employeeId,
-      employeeName,
-      order,
-      noCheckup,
-      checks, // This now contains the health check results dynamically
-    }) => (
-      <TouchableOpacity
-        key={employeeId}
-        onPress={() => handleCompanyPress(employeeId, companyId)}
-      >
-        <Card style={{ width: 400 }}>
-          <Card.Content>
-            <Text variant="titleLarge">ลำดับ: {order}</Text>
-            <Text variant="titleLarge">ชื่อ: {employeeName}</Text>
-            {noCheckup ? (
-              <Text variant="titleLarge" style={{ color: "red" }}>
-                ไม่มีการตรวจปีนี้
-              </Text>
-            ) : (
-              Object.entries(checks).map(([checkType, checked]) => (
-                <Text
-                  key={checkType}
-                  variant="titleLarge"
-                  style={{ color: checked ? "green" : "black" }}
+          {filteredHealthCheckCounts
+            .sort((a, b) => a.order - b.order)
+            .map(
+              ({
+                employeeId,
+                employeeName,
+                order,
+                noCheckup,
+                checks, // This now contains the health check results dynamically
+              }) => (
+                <TouchableOpacity
+                  key={employeeId}
+                  onPress={() => handleCompanyPress(employeeId, companyId)}
                 >
-                  {checkType}: {checked ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
-                </Text>
-              ))
+                  <Card style={{ width: 400 }}>
+                    <Card.Content>
+                      <Text variant="titleLarge">ลำดับ: {order}</Text>
+                      <Text variant="titleLarge">ชื่อ: {employeeName}</Text>
+                      {noCheckup ? (
+                        <Text variant="titleLarge" style={{ color: "red" }}>
+                          ไม่มีการตรวจปีนี้
+                        </Text>
+                      ) : (
+                        Object.entries(checks).map(([checkType, checked]) => (
+                          <Text
+                            key={checkType}
+                            variant="titleLarge"
+                            style={{ color: checked ? "green" : "black" }}
+                          >
+                            {checkType}:{" "}
+                            {checked ? "ตรวจแล้ว" : "ยังไม่ได้ตรวจ"}
+                          </Text>
+                        ))
+                      )}
+                    </Card.Content>
+                  </Card>
+                </TouchableOpacity>
+              )
             )}
-          </Card.Content>
-        </Card>
-      </TouchableOpacity>
-    )
-  )}
-
         </View>
       </ScrollView>
       <Modal
