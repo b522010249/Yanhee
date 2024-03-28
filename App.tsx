@@ -21,6 +21,7 @@ import AddSingleEmployee from "./src/AddSingleEmployee";
 import Login from "./src/Login";
 import PackageList from "./src/PackageList";
 import BillingToPrint from "./src/BillingToPrint";
+import Sticker2 from "./src/Sticker2";
 
 export default function App() {
   const theme = {
@@ -158,6 +159,11 @@ export default function App() {
                 <Stack.Screen
                   name="AddSingleEmployee"
                   component={AddSingleEmployee}
+                  options={{ headerShown: false }}
+                />
+                <Stack.Screen
+                  name="Sticker2"
+                  component={Sticker2}
                   options={{ headerShown: false }}
                 />
                 <Stack.Screen

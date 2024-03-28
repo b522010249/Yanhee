@@ -8,7 +8,7 @@ import ReactToPrint, { useReactToPrint } from "react-to-print";
 
 const Test = () => {
   const [employee, setEmployee] = useState([]);
-  const companyId = "Infonet";
+  const companyId = "Solarcon";
   const componentRef = useRef(null);
   useEffect(() => {
     const unsubscribe = onSnapshot(
