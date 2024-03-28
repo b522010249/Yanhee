@@ -20,7 +20,6 @@ import { useReactToPrint } from "react-to-print";
 import DropDown from "react-native-paper-dropdown";
 import { useRoute } from "@react-navigation/native";
 import { Button, DataTable, Text } from "react-native-paper";
-import BillingToPrint from './BillingToPrint'
 import Biliing from "./Biliing";
 const Employee = ({ navigation }) => {
   const route = useRoute();

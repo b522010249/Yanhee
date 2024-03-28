@@ -6,14 +6,9 @@ import { Checkbox, TextInput } from "react-native-paper";
 import { PaperSelect } from "react-native-paper-select";
 import {
   collection,
-  setDoc,
   onSnapshot,
-  doc,
-  getDocs,
-  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../database/config";
-import PackageList from "./PackageList";
 const Biliing = ({ employeeData, companyId }) => {
   const [price, setPrice] = useState("");
   const componentBillingRef = useRef(null);
@@ -101,7 +96,6 @@ const Biliing = ({ employeeData, companyId }) => {
         multiEnable={true}
       />
 
-
       <TextInput label={"ราคา"} value={price} onChangeText={setPrice} />
       <Text>
         โอนจ่าย{" "}
@@ -112,17 +106,23 @@ const Biliing = ({ employeeData, companyId }) => {
           }}
         />
       </Text>
-      <View style={{ display: "none" }}>
+      <div
+        style={{
+          display: "none",
+          width: "148mm",
+          height: "210mm",
+          pageBreakAfter: "always",
+        }}
+      >
         <BillingToPrint
           ref={componentBillingRef}
-          employeeID={"123"}
           name={name}
           order={employeeData.ลำดับ}
           paid={checked}
           selected={Itemsselected?.text}
           price={price}
         />
-      </View>
+      </div>
       <TouchableOpacity style={styles.incard2} onPress={handlePrintBilling}>
         <Text>พิมพ์ใบเสร็จ </Text>
       </TouchableOpacity>

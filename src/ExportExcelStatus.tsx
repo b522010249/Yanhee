@@ -31,21 +31,32 @@ const ExportExcelStatus: React.FC<ExportToExcelButtonProps> = ({ healthCheckCoun
         return a.order - b.order;
       });
     const exportToExcel = () => {
-        const data = sortedEmployees.map(({ order, employeeName, noCheckup, checks }) => {
+        const data = sortedEmployees.map(({ order, employeeName, noCheckup, checks, status }) => {
             const formattedChecks: { [key: string]: string } = {};
+            let healthCheckStatus = '';
+            
             for (const key in checks) {
                 if (checks.hasOwnProperty(key)) {
                     formattedChecks[key] = checks[key] ? 'ตรวจแล้ว' : 'ยังไม่ได้ตรวจ';
                 }
             }
+        
+            if (status === 'Cancel') {
+                healthCheckStatus = 'ยกเลิกการตรวจ';
+            } else {
+                const pendingCheckups = Object.keys(checks).filter(check => !checks[check]).join(', ');
+                healthCheckStatus = pendingCheckups ? pendingCheckups : (noCheckup ? 'ไม่มีการตรวจสุขภาพ' : 'มีการตรวจสุขภาพ');
+            }
+        
             return {
                 'ลำดับ': order,
                 'ชื่อ-นามสกุล': employeeName,
-                'ตรวจสุขภาพ': noCheckup ? 'ไม่มีการตรวจสุขภาพ' : 'มีการตรวจสุขภาพ',
+                'สถานะ': healthCheckStatus,
                 ...formattedChecks
             };
         });
-
+        
+        console.log(data)
         const worksheet = XLSX.utils.json_to_sheet(data);
         
         const workbook = XLSX.utils.book_new();

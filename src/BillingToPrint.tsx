@@ -3,7 +3,7 @@ import { View, StyleSheet } from "react-native";
 import { Text } from "react-native-paper";
 
 const BillingToPrint = React.forwardRef(
-  ({ employeeID, price, name, selected, paid, order }, ref) => {
+  ({  price, name, selected, paid, order }, ref) => {
     function convertToThaiBuddhistYear(year) {
       return year + 543;
     }
@@ -55,47 +55,48 @@ const BillingToPrint = React.forwardRef(
     return (
       <View style={styles.card} ref={ref}>
         <View style={styles.centeredContainer}>
-          <Text variant="displaySmall">โรงพยาบาลยันฮี</Text>
-          <Text>บริษัท โรงพยาบาลยันฮี จำกัด</Text>
-          <Text>454 ถนนจรัญสนิทวงศ์ (ปากซอย 90) แขวงบางอ้อ</Text>
-          <Text>เขตบางพลัด กรุงเทพมหานคร 10700 โทร. 0-2879-0300</Text>
-          <Text>
+          <Text variant="displaySmall" style={[styles.texthead]}>โรงพยาบาลยันฮี</Text>
+          <Text style={[styles.text]}>บริษัท โรงพยาบาลยันฮี จำกัด</Text>
+          <Text style={[styles.text]}>454 ถนนจรัญสนิทวงศ์ (ปากซอย 90) แขวงบางอ้อ</Text>
+          <Text style={[styles.text]}>เขตบางพลัด กรุงเทพมหานคร 10700 โทร. 0-2879-0300</Text>
+          <Text style={[styles.text]}>
             แฟกซ์ 0-2435-7545 เลขประจำตัวผู้เสียภาษี 3 0 1 1 3 9 1 0 0 6
           </Text>
           <View style={styles.rightAlign}>
-            <Text>ลำดับ {order}</Text>
+          <Text style={[styles.text, { paddingRight: 30 }]}>ลำดับ {order}</Text>
+
           </View>
-          <Text variant="displaySmall">ใบเสร็จรับเงิน</Text>
+          <Text variant="displaySmall" style={[styles.texthead]}>ใบเสร็จรับเงิน</Text>
         </View>
 
         <View style={styles.borderedContainer}>
           <View style={styles.rightAlign}>
-            <Text variant="titleLarge">
+            <Text style={[styles.text, { paddingRight: 30 }]}>
               วันที่ {new Date().getDate()} เดือน{" "}
               {getThaiMonthAbbreviation(new Date().getMonth() + 1)} พ.ศ.{" "}
               {convertToThaiBuddhistYear(new Date().getFullYear())}
             </Text>
           </View>
           <View style={styles.spaceBetween}>
-            <Text variant="titleLarge">
-              ได้รับเงินจาก <Text > {name}</Text>
+            <Text style={[styles.text]}>
+              ได้รับเงินจาก <Text style={[styles.text]}> {name}</Text>
             </Text>
-            <Text variant="titleLarge">
-              ชำระค่า <Text >{selected}</Text>
+            <Text style={[styles.text]}>
+              ชำระค่า <Text style={[styles.text]} >{selected}</Text>
             </Text>
-            <Text variant="titleLarge">
+            <Text style={[styles.text]}>
               ชำระโดย{" "}
-              <Text >{paid ? "การโอน" : "เงินสด"}</Text>
+              <Text style={[styles.text]}>{paid ? "การโอน" : "เงินสด"}</Text>
             </Text>
-            <Text variant="titleLarge">
+            <Text style={[styles.text]}>
               เป็นจำนวนเงิน{" "}
-              <Text >
+              <Text style={[styles.text]}>
                 {price} ({numberToThaiText(price)})
               </Text>
             </Text>
           </View>
           <View style={styles.rightAlign}>
-            <Text variant="titleLarge">ผู้รับเงิน ___________</Text>
+            <Text style={[styles.text, { paddingRight: 30 }]}>ผู้รับเงิน _________________</Text>
           </View>
         </View>
       </View>
@@ -135,7 +136,12 @@ const styles = StyleSheet.create({
     textDecorationLine: "underline",
   },
   text: {
-    marginBottom: 8, // Space below the text
+    fontFamily: 'Angsana New',
+    fontSize: 20 // Space below the text
+  },
+  texthead: {
+    fontFamily: 'Angsana New',
+ // Space below the text
   },
 });
 

@@ -1,4 +1,3 @@
-// Test.js
 import React, { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { db } from "../database/config";
@@ -6,26 +5,31 @@ import { collection, onSnapshot } from "firebase/firestore";
 import Sticker from "./Sticker";
 import ReactToPrint, { useReactToPrint } from "react-to-print";
 
-const Test = () => {
+const StickerToPrintAll = ({ companyID }) => {
+  const componentRefs = useRef([]);
   const [employee, setEmployee] = useState([]);
-  const companyId = "Solarcon";
-  const componentRef = useRef(null);
+
   useEffect(() => {
     const unsubscribe = onSnapshot(
-      collection(db, "Company", companyId, "Employee"),
+      collection(db, "Company", companyID, "Employee"),
       (snapshot) => {
         const employeesData = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
         setEmployee(employeesData);
+        componentRefs.current = employeesData.map(() => React.createRef());
       }
     );
 
     return () => unsubscribe(); // Cleanup on component unmount
   }, []);
+
+  // Function to handle printing
   const handlePrint = useReactToPrint({
-    content: () => componentRef.current,
+    content: () => componentRefs.current
+      .filter(ref => ref && ref.current)
+      .map(ref => ref.current),
   });
 
   return (
@@ -36,28 +40,24 @@ const Test = () => {
             <Text>พิมพ์ทั้งหมด</Text>
           </TouchableOpacity>
         )}
-        content={() => componentRef.current}
+        content={() => componentRefs.current.filter(ref => ref && ref.current).map(ref => ref.current)}
       />
-      <div ref={componentRef}>
-      {employee
-  .slice() // Create a copy to avoid mutating the original array
-  .sort((a, b) => b["ลำดับ"] - a["ลำดับ"]) // Sort employees based on the "ลำดับ" property
-  .map((employee) => (
-    <Sticker
-      key={employee.id} // Make sure to provide a unique key for each sticker
-      employeeID={employee.id}
-      companyID={companyId}
-    />
-  ))}
+      <div style={{ display: "none" }}>
+        {employee.map((employeeData, index) => (
+          <Sticker
+          ref={componentRefs.current[index]}
+            key={employeeData.id}
+            employeeID={employeeData.id}
+            companyID={companyID}
+          />
+        ))}
       </div>
     </View>
   );
 };
 
-export default Test;
+export default StickerToPrintAll;
 
 const testStyles = StyleSheet.create({
-  test:{
-
-  }
+  test: {},
 });
