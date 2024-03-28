@@ -10,6 +10,8 @@ import QRCode from "react-native-qrcode-svg";
 import { db } from "../database/config";
 import {
   collection,
+  deleteDoc,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -229,6 +231,75 @@ const Employee = ({ navigation }) => {
       console.error("Error toggling CheckupStatus:", error);
     }
   };
+  const toggleCancel = async (item) => {
+    try {
+      const healthCheckDocRef = doc(
+        db,
+        "Company",
+        companyID,
+        "Employee",
+        employeeID,
+        "History",
+        year,
+        "HealthCheck",
+        item.id
+      );
+
+      // Update the CheckupStatus in Firebase to null
+      await setDoc(healthCheckDocRef, {
+        ...item,
+        CheckupStatus: null,
+      });
+
+      // Update the local state with the updated CheckupStatus
+      setHealthCheckData((prevData) =>
+        prevData.map((entry) =>
+          entry.id === item.id ? { ...entry, CheckupStatus: null } : entry
+        )
+      );
+    } catch (error) {
+      console.error("Error toggling CheckupStatus:", error);
+    }
+  };
+
+  const toggleCancelCheckup = async () => {
+    try {
+      const healthCheckCollectionRef = collection(
+        db,
+        "Company",
+        companyID,
+        "Employee",
+        employeeID,
+        "History",
+        year,
+        "HealthCheck"
+      );
+
+      // Get all documents in the HealthCheck collection
+      const querySnapshot = await getDocs(healthCheckCollectionRef);
+
+      // Delete each document in the HealthCheck collection
+      querySnapshot.forEach(async (doc) => {
+        await deleteDoc(doc.ref);
+      });
+
+      // Delete the HealthCheck collection itself
+      await deleteField(healthCheckCollectionRef);
+      // Update the status field in the History document to 'Cancel'
+      const historyDocRef = doc(
+        db,
+        "Company",
+        companyID,
+        "Employee",
+        employeeID,
+        "History",
+        year
+      );
+      await setDoc(historyDocRef, { status: "Cancel" }, { merge: true });
+    } catch (error) {
+      console.error("Error toggling CheckupStatus:", error);
+    }
+  };
 
   return (
     <ScrollView style={{ flex: 1 }}>
@@ -252,23 +323,16 @@ const Employee = ({ navigation }) => {
         </View>
         <Text>
           {HistoryData.length > 0
-            ? HistoryData.find((item) => item.id === year)?.status
-              ? "Active"
-              : "Inactive"
+            ? HistoryData.find((item) => item.id === year)?.status || "Inactive"
             : ""}
         </Text>
 
         <View>
-          <TextInput
-            placeholder="Search"
-            style={{
-              height: 40,
-              borderColor: "gray",
-              borderWidth: 1,
-              marginBottom: 10,
-              padding: 8,
-            }}
-          />
+          <View>
+            <Button onPress={toggleCancelCheckup}>ยกเลิกการตรวจ</Button>
+            <Button>ตรวจ รพ.</Button>
+          </View>
+
           <Button
             style={{ width: "100%" }}
             mode="contained"
@@ -281,24 +345,34 @@ const Employee = ({ navigation }) => {
               <DataTable.Title>รายการตรวจสุขภาพ</DataTable.Title>
               <DataTable.Title numeric>สถานะการตรวจสุขภาพ</DataTable.Title>
               <DataTable.Title numeric>สถานะผลตรวจสุขภาพ</DataTable.Title>
+              <DataTable.Title numeric>คำสั่ง</DataTable.Title>
             </DataTable.Header>
             {HealthCheck.map((item) => (
               <DataTable.Row key={item.id}>
                 <DataTable.Cell>{item.name}</DataTable.Cell>
                 <DataTable.Cell numeric>
                   <TouchableOpacity onPress={() => toggleCheckupStatus(item)}>
-                    <Text>{item.CheckupStatus.toString()}</Text>
+                    <Text>
+                      {item.CheckupStatus === null
+                        ? "ยกเลิก"
+                        : item.CheckupStatus.toString()}
+                    </Text>
                   </TouchableOpacity>
                 </DataTable.Cell>
                 <DataTable.Cell numeric>
                   {item.ResultsStatus.toString()}
+                </DataTable.Cell>
+                <DataTable.Cell numeric>
+                  <Button mode="contained" onPress={() => toggleCancel(item)}>
+                    ยกเลิก
+                  </Button>
                 </DataTable.Cell>
               </DataTable.Row>
             ))}
           </DataTable>
           <View>
             <Text>สั่งพิมใบเสร็จ</Text>
-          <Biliing employeeData={employeeData} companyId={companyID}/>
+            <Biliing employeeData={employeeData} companyId={companyID} />
           </View>
           {/* <View>
             <TextInput placeholder="ความดันครั้งที่ 1" />
