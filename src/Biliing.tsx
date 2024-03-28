@@ -6,14 +6,9 @@ import { Checkbox, TextInput } from "react-native-paper";
 import { PaperSelect } from "react-native-paper-select";
 import {
   collection,
-  setDoc,
   onSnapshot,
-  doc,
-  getDocs,
-  deleteDoc,
 } from "firebase/firestore";
 import { db } from "../database/config";
-import PackageList from "./PackageList";
 const Biliing = ({ employeeData, companyId }) => {
   const [price, setPrice] = useState("");
   const componentBillingRef = useRef(null);

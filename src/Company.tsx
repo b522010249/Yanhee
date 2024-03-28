@@ -17,7 +17,8 @@ import AddEmployee from "./AddEmployee";
 import DropDown from "react-native-paper-dropdown";
 import AddPackage from "./AddPackage";
 import AddSingleEmployee from "./AddSingleEmployee";
-import ExportExcelStatus from "./ExportExcelstatus";
+import ExportExcelStatus from "./ExportExcelStatus";
+import StickerToPrintAll from "./StickerToPrintAll";
 
 interface Employee {
   id: string;
@@ -66,15 +67,18 @@ const countHealthChecks = async (
     promises.push(
       (async () => {
         const historySnapshot = await getDocs(historyCollectionRef);
-        const hasHistory = historySnapshot.docs.some(
+        const hasHistory = historySnapshot.docs.find(
           (doc) => doc.id === historyId
         );
+
         if (!hasHistory) {
+          
           noCheckCount++;
           return {
             employeeId,
             employeeName,
             order,
+            status,
             noCheckup: true,
             checks: {},
           };
@@ -89,13 +93,13 @@ const countHealthChecks = async (
         let bloodCheckFound = false;
         querySnapshot.docs.forEach((doc) => {
           const type = doc.data().type;
-          const name = doc.data().name;
+          const name = doc.data().id;
           const checkupstatus = doc.data().CheckupStatus;
 
           if (type !== "blood check") {
             checks[name] = checkupstatus; // Include PE regardless of CheckupStatus
-          } else if (type === "blood check" && !checks["ตรวจรายการเจาะเลือด"]) {
-            checks["ตรวจรายการเจาะเลือด"] = checkupstatus; // Include bloodCheck if not already included
+          } else if (type === "blood check" && !checks["blood check"]) {
+            checks["blood check"] = checkupstatus; // Include bloodCheck if not already included
           }
         });
 
@@ -104,6 +108,7 @@ const countHealthChecks = async (
           employeeName,
           order,
           noCheckup: false,
+          status:hasHistory.data().status,
           checks,
         };
       })()
@@ -128,6 +133,7 @@ interface HealthCheckCount {
   employeeId: string;
   employeeName: string;
   order: number;
+  status: string;
   noCheckup: boolean;
   checks: { [healthCheckTypeId: string]: boolean };
 }
@@ -258,7 +264,7 @@ const Company: React.FC<any> = ({ route }) => {
   return (
     <View style={styles.container}>
       <ExportExcelStatus healthCheckCounts={healthCheckCounts} />
-
+      <StickerToPrintAll companyID={companyId}/>
       <DropDown
         label={"Year"}
         visible={showDropDown}

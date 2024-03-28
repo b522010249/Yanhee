@@ -1,7 +1,7 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
 import { Text } from "react-native-paper";
-import AngsanaNewFont from "../assets/fonts/ANGSA.ttf";
+
 const BillingToPrint = React.forwardRef(
   ({  price, name, selected, paid, order }, ref) => {
     function convertToThaiBuddhistYear(year) {

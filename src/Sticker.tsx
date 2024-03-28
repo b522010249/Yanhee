@@ -1,5 +1,4 @@
-// Sticker.js
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import QRCode from "react-native-qrcode-svg";
 import { db } from "../database/config";
@@ -7,13 +6,10 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
   onSnapshot,
 } from "firebase/firestore";
-import { useReactToPrint } from "react-to-print";
 
-const Sticker = ({ employeeID, companyID }, ref) => {
-
+const Sticker = React.forwardRef(({ employeeID, companyID }, ref) => {
   const namepe = "ตรวจปัสสาวะ";
   const year = "2024";
   const [employeeData, setEmployeeData] = useState({});
@@ -70,7 +66,6 @@ const Sticker = ({ employeeID, companyID }, ref) => {
           ];
 
           setHealthCheckData(updatedHealthCheckData);
-          console.log(updatedHealthCheckData);
         });
 
         return () => {
@@ -83,69 +78,67 @@ const Sticker = ({ employeeID, companyID }, ref) => {
 
     fetchDocument();
   }, [companyID, employeeID, year]);
-  useReactToPrint({
-    content: () => ref.current,
-  });
+
   const sortedHealthCheckData = HealthCheckData.sort((a, b) => {
     return b.id === "PE" ? -1 : a.id === "PE" ? 1 : 0;
   });
+
   return (
     <View ref={ref}>
-    {sortedHealthCheckData.map((healthCheck, index) => {
-      const { amount_sticker, name, type } = healthCheck;
+      {sortedHealthCheckData.map((healthCheck, index) => {
+        const { amount_sticker, name, type } = healthCheck;
 
-      const stickerElements = Array.from({ length: amount_sticker }, (_, i) => (
-        <View key={i} style={styles.sticker}>
-          <View style={styles.leftContainer}>
-            <Text style={styles.text}>
-              ลำดับที่: {employeeData["ลำดับ"]}
-            </Text>
-            <Text style={{ ...styles.text, fontSize: 16 }}>
-              {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
-              {"\n"}
-              {employeeData["นามสกุล"]}
-            </Text>
-            <>
-              {type === "blood check" ? (
-                <Text style={{ ...styles.text, fontSize: 16 }}>
-                  ตรวจรายการเจาะเลือด
-                </Text>
-              ) : healthCheck.id === "PE" ? (
-                <Text style={{ ...styles.text, fontSize: 16 }}>
-                  {employeeData["HN."]}  {employeeData["ว/ด/ปีเกิด"]}
-                </Text>
-              ) : healthCheck.id === "UA" ? (
-                <Text style={{ ...styles.text, fontSize: 16 }}>
-                  {employeeData["HN."]} {namepe}
-                </Text>
-              ) : (
-                <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
-              )}
-            </>
+        const stickerElements = Array.from({ length: amount_sticker }, (_, i) => (
+          <View key={i} style={styles.sticker}>
+            <View style={styles.leftContainer}>
+              <Text style={styles.text}>
+                ลำดับที่: {employeeData["ลำดับ"]}
+              </Text>
+              <Text style={{ ...styles.text, fontSize: 16 }}>
+                {employeeData["คำนำหน้า"]} {employeeData["ชื่อจริง"]}
+                {"\n"}
+                {employeeData["นามสกุล"]}
+              </Text>
+              <>
+                {type === "blood check" ? (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>
+                    ตรวจรายการเจาะเลือด
+                  </Text>
+                ) : healthCheck.id === "PE" ? (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>
+                    {employeeData["HN."]}  {employeeData["ว/ด/ปีเกิด"]}
+                  </Text>
+                ) : healthCheck.id === "UA" ? (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>
+                    {employeeData["HN."]} {namepe}
+                  </Text>
+                ) : (
+                  <Text style={{ ...styles.text, fontSize: 16 }}>{name}</Text>
+                )}
+              </>
+            </View>
+            <View style={styles.rightContainer}>
+              <QRCode
+                value={
+                  companyID +
+                  "/" +
+                  employeeData["HN."] +
+                  "/" +
+                  year +
+                  "/" +
+                  healthCheck.id
+                }
+                size={60}
+              />
+            </View>
           </View>
-          <View style={styles.rightContainer}>
-            <QRCode
-              value={
-                companyID +
-                "/" +
-                employeeData["HN."] +
-                "/" +
-                year +
-                "/" +
-                healthCheck.id
-              }
-              size={60}
-            />
-          </View>
-        </View>
-      ));
+        ));
 
-      return stickerElements;
-    })}
-  </View>
-
+        return stickerElements;
+      })}
+    </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   sticker: {
@@ -153,7 +146,6 @@ const styles = StyleSheet.create({
     flex:1,
     display:"flex",
     marginLeft: 15,
-
     pageBreakAfter: 'always',
   },
   leftContainer: {
@@ -161,10 +153,8 @@ const styles = StyleSheet.create({
     display:"flex",
     position:"relative",
     justifyContent: "space-between",
-
   },
   rightContainer: {
-
     position:"absolute",
     top: 0,
     right: -20,
@@ -174,4 +164,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default React.forwardRef(Sticker);
+export default Sticker;
